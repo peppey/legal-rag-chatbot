@@ -1,0 +1,26 @@
+[project]
+name = "legal-rag-chatbot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Pia Baronetzky", email = "pia@baronetzky.org" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "google-cloud-storage>=3.15.0",
+    "pydantic>=2.13.5",
+    "python-dotenv>=1.2.3",
+]
+
+[project.scripts]
+legal-rag-chatbot = "legal_rag_chatbot:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
