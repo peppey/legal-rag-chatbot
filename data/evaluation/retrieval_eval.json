@@ -1,0 +1,1035 @@
+{
+  "metadata": {
+    "name": "legal-rag-chatbot retrieval evaluation",
+    "version": "1.0",
+    "language": "de",
+    "created_at": "2026-10-07",
+    "corpus_file": "data/processed/synthetic_legal_counsel_documents.jsonl",
+    "description": "Evaluationsfragen für das Retrieval des Rechercheassistenten. Jede Frage verweist über document_id auf die Dokumente im Korpus, die zur Beantwortung nötig oder hilfreich sind, inklusive abgestufter Relevanz.",
+    "notes": [
+      "document_id entspricht dem gleichnamigen Feld im Korpus. Nicht gelistete Dokumente gelten als nicht relevant (Relevanz 0).",
+      "relevant_documents ist pro Frage nach Relevanz absteigend sortiert und für nDCG, MRR, Recall@k und Precision@k geeignet.",
+      "Fragen der Kategorie nicht_im_korpus haben eine leere relevant_documents-Liste: Die Antwort steht nicht im Korpus. Sie sind aus Recall/nDCG auszunehmen und prüfen, ob das System keine Antwort erfindet.",
+      "reference_answer dient nur der Nachvollziehbarkeit der Relevanzvergabe und als Referenz für die Antwortqualität."
+    ],
+    "relevance_scale": {
+      "3": "Kerndokument: enthält die Antwort oder den wesentlichen Teil der Antwort direkt.",
+      "2": "Wichtig: enthält zentrale Teilinformationen, Belege oder die Gegenposition, die für eine vollständige Antwort gebraucht werden.",
+      "1": "Kontext: nützlicher Hintergrund oder verwandte Information; die Frage ist auch ohne dieses Dokument beantwortbar.",
+      "0": "Nicht relevant (nicht gelistet)."
+    },
+    "difficulty_levels": {
+      "leicht": "Eine einzelne Fundstelle genügt; die Frage nennt Mandat, Partei oder konkrete Begriffe, sodass hohe lexikalische Überlappung mit dem Zieldokument besteht.",
+      "mittel": "Die Antwort verteilt sich auf zwei bis vier Dokumente desselben Falls oder die Frage ist paraphrasiert; ähnliche Dokumente anderer Fälle wirken als Distraktoren.",
+      "schwer": "Fallübergreifend, abstrakt formuliert oder erfordert den Abgleich widersprüchlicher Quellen bzw. viele relevante Dokumente; auch thematisch nahe Negativfälle."
+    },
+    "categories": {
+      "faktenabfrage": "Konkrete Fakten, Beträge, Namen oder Sachverhaltsdetails.",
+      "vertragsklausel": "Inhalt und Auslegung von Vertrags- oder Satzungsklauseln.",
+      "fristen_und_verjaehrung": "Fristen, Termine, Verjährung.",
+      "rechtliche_bewertung": "Rechtliche Einschätzung, Anspruchsgrundlagen, Erfolgsaussichten.",
+      "berechnung": "Berechnung von Beträgen, Quoten oder Streitwerten.",
+      "gegenseite_und_verhandlung": "Position der Gegenseite, Vergleichs- und Verhandlungsstand.",
+      "kanzleiorganisation": "Interne Richtlinien, Gebühren und Arbeitshilfen der Kanzlei.",
+      "mehrere_faelle": "Die Antwort erfordert Dokumente aus mehreren Mandaten.",
+      "nicht_im_korpus": "Die Antwort ist im Korpus nicht enthalten (Negativfall)."
+    }
+  },
+  "questions": [
+    {
+      "id": "Q001",
+      "question": "Bis wann muss Frau Keller der Eigenbedarfskündigung des Vermieters Wendt widersprechen, und wann ist die Wiedervorlage dafür eingetragen?",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-001-04", "relevance": 3},
+        {"document_id": "CASE-001-03", "relevance": 2},
+        {"document_id": "CASE-001-08", "relevance": 2},
+        {"document_id": "CASE-001-06", "relevance": 1},
+        {"document_id": "KANZLEI-01", "relevance": 1}
+      ],
+      "reference_answer": "Der Widerspruch nach § 574b Abs. 2 BGB muss dem Vermieter bis 31.08.2026 zugehen, Wiedervorlage ist der 14.08.2026. Er wurde bereits am 20.02.2026 erklärt."
+    },
+    {
+      "id": "Q002",
+      "question": "Welche Anhaltspunkte sprechen dafür, dass der Vermieter bei der Eigenbedarfskündigung seine Anbietpflicht verletzt hat, und wie hoch schätzt die Kanzlei das Risiko ein?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-001-08", "relevance": 3},
+        {"document_id": "CASE-001-05", "relevance": 2},
+        {"document_id": "CASE-001-07", "relevance": 2},
+        {"document_id": "CASE-001-04", "relevance": 2},
+        {"document_id": "CASE-001-06", "relevance": 1}
+      ],
+      "reference_answer": "Die Zweizimmerwohnung (ca. 52 m²) im 2. OG rechts stand ab 01.02.2026 leer und wurde erst am 12.02.2026 an Dritte vermietet. Ob sie mit der 74-m²-Wohnung vergleichbar ist, ist zweifelhaft; das Risiko eines Verstoßes wird als mittel eingestuft."
+    },
+    {
+      "id": "Q003",
+      "question": "Bis wann musste Herr Hartmann seine Kündigungsschutzklage gegen die Rheinblick Logistik AG erheben?",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-002-04", "relevance": 3},
+        {"document_id": "CASE-002-01", "relevance": 2},
+        {"document_id": "CASE-002-05", "relevance": 2},
+        {"document_id": "CASE-002-03", "relevance": 1},
+        {"document_id": "KANZLEI-01", "relevance": 1}
+      ],
+      "reference_answer": "Bei Zugang am 14.01.2026 endete die Dreiwochenfrist des § 4 KSchG am 04.02.2026; die Klage wurde am 28.01.2026 eingereicht."
+    },
+    {
+      "id": "Q004",
+      "question": "Mit welchen Argumenten wird im Kündigungsschutzprozess Hartmann eine Weiterbeschäftigungsmöglichkeit belegt, und wie reagiert die Arbeitgeberin darauf?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-002-06", "relevance": 3},
+        {"document_id": "CASE-002-07", "relevance": 3},
+        {"document_id": "CASE-002-05", "relevance": 2},
+        {"document_id": "CASE-002-08", "relevance": 2},
+        {"document_id": "CASE-002-02", "relevance": 1},
+        {"document_id": "CASE-002-04", "relevance": 1}
+      ],
+      "reference_answer": "Der Mandant fand im Karriereportal die Ausschreibung „Teamleiter Netzplanung“ in Duisburg und verweist auf Weiterbeschäftigung im Planungszentrum Duisburg. Die Arbeitgeberin hält dagegen, es sei eine neu geschaffene Position „Teamleiter Netzplanung Zentral“ mit verändertem Anforderungsprofil (SAP TM, Konzernreporting, neun Mitarbeitende), das der Kläger nicht erfülle; das Gericht wird dies prüfen."
+    },
+    {
+      "id": "Q005",
+      "question": "Welche Abfindung wird im Verfahren Hartmann gegen die Rheinblick Logistik AG empfohlen, und wie berechnet sich die Regelabfindung?",
+      "category": "berechnung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-002-08", "relevance": 3},
+        {"document_id": "CASE-002-02", "relevance": 1},
+        {"document_id": "CASE-002-01", "relevance": 1}
+      ],
+      "reference_answer": "Regelabfindung 0,5 × 4.850,00 EUR × 7,67 Jahre ≈ 18.600,00 EUR brutto; empfohlen wird eine Einigung bei 18.000 bis 19.000 EUR brutto mit qualifiziertem Zeugnis und Freistellungs-/Urlaubsabgeltungsregelung (Angebot der Beklagten 13.000 EUR, Forderung 21.000 EUR)."
+    },
+    {
+      "id": "Q006",
+      "question": "Bis wann musste Herr Brinkmann Klage gegen die Kündigung seines Freelance-Rahmenvertrags erheben, und wann wurde sie eingereicht?",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-023-05", "relevance": 3},
+        {"document_id": "CASE-023-01", "relevance": 3},
+        {"document_id": "CASE-023-06", "relevance": 2},
+        {"document_id": "CASE-023-03", "relevance": 1},
+        {"document_id": "KANZLEI-01", "relevance": 1}
+      ],
+      "reference_answer": "Zugang der Kündigung war am 08.01.2026, die Frist des § 4 KSchG lief daher bis 29.01.2026; die Klage ging am 22.01.2026 beim Arbeitsgericht Düsseldorf ein."
+    },
+    {
+      "id": "Q007",
+      "question": "Welche Indizien sprechen dafür, dass Herr Brinkmann trotz Rahmenvertrag über freie Mitarbeit tatsächlich Arbeitnehmer war?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-023-05", "relevance": 3},
+        {"document_id": "CASE-023-04", "relevance": 3},
+        {"document_id": "CASE-023-01", "relevance": 2},
+        {"document_id": "CASE-023-06", "relevance": 2},
+        {"document_id": "CASE-023-02", "relevance": 2},
+        {"document_id": "CASE-023-07", "relevance": 2},
+        {"document_id": "CASE-023-03", "relevance": 1}
+      ],
+      "reference_answer": "Pflichtteilnahme am Daily (09:30 Uhr), Büropflicht Di–Do, Aufgabenzuteilung durch den Teamleiter, Urlaubsfreigabe über das HR-Tool, Laptop und E-Mail-Adresse der Auftraggeberin, keine Vertretungsmöglichkeit und rund 92 % Umsatzanteil. Dagegen sprechen die vertragliche Freiheit, Umsatzsteuerrechnungen, Gewerbeanmeldung und andere Auftraggeber."
+    },
+    {
+      "id": "Q008",
+      "question": "Welcher Betriebsstundenstand ist im Kaufvertrag über das CNC-Bearbeitungszentrum Brenner BZ 2200 angegeben, und welcher Stand wurde tatsächlich ausgelesen?",
+      "category": "faktenabfrage",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-003-01", "relevance": 3},
+        {"document_id": "CASE-003-04", "relevance": 3},
+        {"document_id": "CASE-003-02", "relevance": 2},
+        {"document_id": "CASE-003-03", "relevance": 2},
+        {"document_id": "CASE-003-05", "relevance": 1}
+      ],
+      "reference_answer": "Im Vertrag stehen 4.212 Betriebsstunden, die Steuerung zeigte am 05.01.2026 einen Gesamtstand von 8.037 Stunden; ein Wartungsbericht vom 14.03.2024 wies bereits 7.412 Stunden aus."
+    },
+    {
+      "id": "Q009",
+      "question": "Kann sich der Verkäufer einer gebrauchten Maschine auf den vertraglichen Gewährleistungsausschluss berufen, wenn die im Vertrag genannten Betriebsstunden nicht stimmen?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-003-06", "relevance": 3},
+        {"document_id": "CASE-003-02", "relevance": 3},
+        {"document_id": "CASE-003-04", "relevance": 2},
+        {"document_id": "CASE-003-05", "relevance": 2}
+      ],
+      "reference_answer": "Nach Einschätzung der Kanzlei greift der pauschale Ausschluss nicht, soweit die Betriebsstunden als Beschaffenheit vereinbart wurden (§ 1 Kaufvertrag); bei Arglist ohnehin nicht (§ 444 BGB, § 5 Kaufvertrag nimmt Vorsatz und Arglist aus). Die Gegenseite bestreitet Arglist und verweist auf einen Steuerrechnertausch 2024."
+    },
+    {
+      "id": "Q010",
+      "question": "Wie hoch ist der offene Rechnungsbetrag von Frau Schmidt gegenüber der Mainufer UG insgesamt (brutto)?",
+      "category": "berechnung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-004-04", "relevance": 3},
+        {"document_id": "CASE-004-06", "relevance": 3},
+        {"document_id": "CASE-004-01", "relevance": 2},
+        {"document_id": "CASE-004-02", "relevance": 1}
+      ],
+      "reference_answer": "Die Rechnungen vom 30.09.2025 und 31.10.2025 über je 2.796,50 EUR brutto ergeben zusammen 5.593,00 EUR."
+    },
+    {
+      "id": "Q011",
+      "question": "Auf welche Klausel stützt sich Frau Schmidt bei der Behauptung, der Rabatt-Newsletter sei freigegeben gewesen, und was wendet die Mainufer UG dagegen ein?",
+      "category": "gegenseite_und_verhandlung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-004-02", "relevance": 3},
+        {"document_id": "CASE-004-05", "relevance": 3},
+        {"document_id": "CASE-004-04", "relevance": 2},
+        {"document_id": "CASE-004-01", "relevance": 2},
+        {"document_id": "CASE-004-03", "relevance": 1}
+      ],
+      "reference_answer": "§ 3 des Dienstleistungsvertrags verlangt die Freigabe in Textform durch die Marketingleitung (Frau Hecker, E-Mail vom 23.10.2025). Die Gegenseite behauptet, die Freigabe habe Entwurfsfassung 2 betroffen, versandt worden sei ohne erneute Freigabe Fassung 3 mit dem Code HERBST50."
+    },
+    {
+      "id": "Q012",
+      "question": "Wie ist die Haftung von Schmidt Design & Content im Vertrag mit der Mainufer UG begrenzt, und wann könnte diese Begrenzung nach Ansicht der Kanzlei entfallen?",
+      "category": "vertragsklausel",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-004-02", "relevance": 3},
+        {"document_id": "CASE-004-06", "relevance": 3},
+        {"document_id": "CASE-004-05", "relevance": 2}
+      ],
+      "reference_answer": "Nach § 6 haftet die Auftragnehmerin bei einfacher Fahrlässigkeit nur für wesentliche Vertragspflichten und höchstens in Höhe der Vergütung der letzten drei Monate (7.050,00 EUR netto). Bei einer Abweichung von der Freigabe wäre die Begrenzung fraglich; die Gegenseite beruft sich darauf, dass die Freigabepflicht verletzt wurde."
+    },
+    {
+      "id": "Q013",
+      "question": "Was regelt der Gewerberaummietvertrag von Frau Fischer zur Ankündigung einer Mietminderung?",
+      "category": "vertragsklausel",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-005-02", "relevance": 3},
+        {"document_id": "CASE-005-05", "relevance": 2},
+        {"document_id": "CASE-005-07", "relevance": 2},
+        {"document_id": "CASE-005-04", "relevance": 2}
+      ],
+      "reference_answer": "§ 7: Eine Minderung ist dem Vermieter einen Monat vor Fälligkeit schriftlich anzukündigen; Aufrechnung und Zurückbehaltung sind nur mit unbestrittenen oder rechtskräftig festgestellten Forderungen zulässig. Die Kanzlei hält die Klausel für AGB-rechtlich angreifbar (§ 307 BGB)."
+    },
+    {
+      "id": "Q014",
+      "question": "Wie hoch ist der streitige Mietrückstand im Fall Fischer nach dem Schreiben der Gegenseite, und was wird zum Umgang damit empfohlen?",
+      "category": "berechnung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-005-06", "relevance": 3},
+        {"document_id": "CASE-005-07", "relevance": 3},
+        {"document_id": "CASE-005-05", "relevance": 2},
+        {"document_id": "CASE-005-04", "relevance": 1}
+      ],
+      "reference_answer": "Streitig sind 1.380,00 EUR netto (1.642,20 EUR brutto); die Gegenseite erkennt nur 10 % Minderung für Dezember und Januar an und setzt Frist bis 26.03.2026. Empfohlen wird, den Betrag vor Fristablauf unter Vorbehalt der Rückforderung zu zahlen."
+    },
+    {
+      "id": "Q015",
+      "question": "Welchen Schadensersatzanspruch wegen Umsatzausfalls hat Frau Fischer, und welche Hindernisse nennt die Vermieterseite?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-005-07", "relevance": 3},
+        {"document_id": "CASE-005-06", "relevance": 3},
+        {"document_id": "CASE-005-05", "relevance": 2},
+        {"document_id": "CASE-005-02", "relevance": 2},
+        {"document_id": "CASE-005-03", "relevance": 1}
+      ],
+      "reference_answer": "Anspruch aus § 536a Abs. 1 Alt. 2 BGB (Verzug mit der Mängelbeseitigung) für die Zeit nach Fristablauf am 19.12.2025; Umsatzausfall laut Absageliste 3.100,00 EUR. Die Gegenseite verweist auf den Ausschluss der verschuldensunabhängigen Haftung in § 9 und fehlendes Verschulden."
+    },
+    {
+      "id": "Q016",
+      "question": "Warum ist die vierwöchige Einwendungsfrist gegen Betriebskostenabrechnungen im Gewerbemietvertrag Bebelstraße 31 rechtlich angreifbar?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-022-05", "relevance": 3},
+        {"document_id": "CASE-022-02", "relevance": 2},
+        {"document_id": "CASE-022-06", "relevance": 2},
+        {"document_id": "CASE-022-03", "relevance": 1}
+      ],
+      "reference_answer": "Die Klausel in § 11 fingiert ein Anerkenntnis und ist AGB-rechtlich zweifelhaft (§ 307 BGB); § 556 Abs. 3 BGB gilt nur für Wohnraum. Für 2023 hat der Mandant am 10.12.2024 rechtzeitig Einwendungen erhoben, für 2024 ist die Frist versäumt."
+    },
+    {
+      "id": "Q017",
+      "question": "Auf welcher Grundlage kann die Vermieterin der Fahrradwerkstatt 6 % Verwaltungskosten verlangen, obwohl der Mietvertrag nur 3 % nennt?",
+      "category": "gegenseite_und_verhandlung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-022-07", "relevance": 3},
+        {"document_id": "CASE-022-02", "relevance": 2},
+        {"document_id": "CASE-022-06", "relevance": 1},
+        {"document_id": "CASE-022-05", "relevance": 1}
+      ],
+      "reference_answer": "Die Gegenseite beruft sich auf den vom Mandanten unterzeichneten Nachtrag Nr. 1 vom 15.03.2022, der 6 % der Jahresnettomiete vorsieht; § 5 des Mietvertrags nennt nur 3 %."
+    },
+    {
+      "id": "Q018",
+      "question": "Wie viel Wertersatz hat die Westend GmbH nach dem Widerruf des E-Bikes einbehalten, und wie hat sie das begründet?",
+      "category": "faktenabfrage",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-006-03", "relevance": 3},
+        {"document_id": "CASE-006-01", "relevance": 2},
+        {"document_id": "CASE-006-05", "relevance": 2},
+        {"document_id": "CASE-006-06", "relevance": 1}
+      ],
+      "reference_answer": "917,50 EUR (pauschal 35 % von 2.625,00 EUR), begründet mit 212 km Fahrleistung, 14 Ladezyklen, abgefahrenem Reifenprofil, Kratzern und Gebrauchsspuren am Sattel; erstattet wurden 1.707,50 EUR."
+    },
+    {
+      "id": "Q019",
+      "question": "Wie bewertet die Kanzlei Grund und Höhe des Wertersatzanspruchs nach der Tagestour mit dem E-Bike?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-006-06", "relevance": 3},
+        {"document_id": "CASE-006-04", "relevance": 2},
+        {"document_id": "CASE-006-05", "relevance": 2},
+        {"document_id": "CASE-006-02", "relevance": 2},
+        {"document_id": "CASE-006-01", "relevance": 1}
+      ],
+      "reference_answer": "Wertersatz ist dem Grunde nach wahrscheinlich berechtigt, weil 212 km einschließlich einer 90-km-Tour über die Prüfung der Funktionsweise hinausgehen (§ 357a Abs. 1 BGB). Maßgeblich ist der objektive Wertverlust, grob 15–25 % (ca. 390 bis 655 EUR); Gegenvorschlag 600 EUR, Annahme ab 450 EUR."
+    },
+    {
+      "id": "Q020",
+      "question": "Wie viel darf die Auftraggeberin im Werkvertragsstreit Wagner gegen Linden UG nach dem Ortstermin höchstens zurückbehalten, und welcher Teil des Restwerklohns ist damit unstreitig fällig?",
+      "category": "berechnung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-007-07", "relevance": 3},
+        {"document_id": "CASE-007-04", "relevance": 2},
+        {"document_id": "CASE-007-06", "relevance": 2},
+        {"document_id": "CASE-007-05", "relevance": 1}
+      ],
+      "reference_answer": "Die Beseitigungskosten betragen rund 1.650,00 EUR brutto, Zurückbehaltung höchstens das Doppelte (3.300,00 EUR, § 641 Abs. 3 BGB); unstreitig fällig sind 15.708,00 − 3.300,00 = 12.408,00 EUR."
+    },
+    {
+      "id": "Q021",
+      "question": "Hatte der Objektverwalter Koller Vollmacht, den Nachtrag über 2.380 EUR für den Untergrundausgleich im Flur zu beauftragen?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-007-04", "relevance": 3},
+        {"document_id": "CASE-007-06", "relevance": 3},
+        {"document_id": "CASE-007-02", "relevance": 2},
+        {"document_id": "CASE-007-05", "relevance": 2},
+        {"document_id": "CASE-007-07", "relevance": 2}
+      ],
+      "reference_answer": "Offen und streitig: § 3 des Werkvertrags verlangt schriftliche Beauftragung von Zusatzleistungen, Herr Koller ist laut § 7 nur für tägliche Abstimmungen zuständig. Die mündliche Beauftragung am 22.09.2025 und seine Vollmacht sind nicht belegt; der Nachtrag bleibt streitig."
+    },
+    {
+      "id": "Q022",
+      "question": "Für wie viele Named User und zu welchem Preis hat das Büro Neumann die Software NeckarCalc Pro lizenziert?",
+      "category": "faktenabfrage",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-008-02", "relevance": 3},
+        {"document_id": "CASE-008-01", "relevance": 2},
+        {"document_id": "CASE-008-03", "relevance": 1}
+      ],
+      "reference_answer": "Acht Named User zu je 1.450,00 EUR netto pro Jahr; Laufzeit drei Jahre bis 31.03.2026."
+    },
+    {
+      "id": "Q023",
+      "question": "Wie schätzt die Kanzlei die Wirksamkeit der verschuldensunabhängigen Vertragsstrafenklausel im Lizenzvertrag ein?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-008-07", "relevance": 3},
+        {"document_id": "CASE-008-02", "relevance": 3},
+        {"document_id": "CASE-008-05", "relevance": 2},
+        {"document_id": "CASE-008-06", "relevance": 2}
+      ],
+      "reference_answer": "Die Klausel (§ 9) ist AGB; verschuldensunabhängige Vertragsstrafen sind nach § 307 BGB angreifbar, der Ausgang ist aber nicht sicher. Eine Herabsetzung nach § 343 BGB kommt in Betracht, da der Freiberufler kein Kaufmann ist."
+    },
+    {
+      "id": "Q024",
+      "question": "Für welche der 14 Benutzerkennungen wurde letztlich ein Nachlizenzierungsbedarf anerkannt, und warum nicht für die übrigen?",
+      "category": "gegenseite_und_verhandlung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-008-04", "relevance": 3},
+        {"document_id": "CASE-008-05", "relevance": 3},
+        {"document_id": "CASE-008-06", "relevance": 3},
+        {"document_id": "CASE-008-07", "relevance": 2},
+        {"document_id": "CASE-008-03", "relevance": 1}
+      ],
+      "reference_answer": "Nur für die zwei freien Mitarbeiter (2 × 1.450,00 = 2.900,00 EUR netto). Altkonten ausgeschiedener Mitarbeitender und die Praktikantin auf einem freigewordenen Platz sind nach § 2 zulässig und nicht mehr streitig."
+    },
+    {
+      "id": "Q025",
+      "question": "Weshalb könnte der Beschluss über die Einziehung des Geschäftsanteils von Frau Koch trotz des angenommenen Stimmverbots nicht wirksam zustande gekommen sein?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-009-04", "relevance": 3},
+        {"document_id": "CASE-009-05", "relevance": 3},
+        {"document_id": "CASE-009-03", "relevance": 2},
+        {"document_id": "CASE-009-02", "relevance": 2},
+        {"document_id": "CASE-009-01", "relevance": 1}
+      ],
+      "reference_answer": "Das Stimmverbot besteht nur, wenn der wichtige Grund tatsächlich vorliegt. Fehlt er, zählt Frau Kochs Stimme mit, und es haben nur 70 % statt der nach § 12 Abs. 2 Gesellschaftsvertrag erforderlichen 75 % zugestimmt."
+    },
+    {
+      "id": "Q026",
+      "question": "Wie wird die Abfindung bei Einziehung eines Geschäftsanteils im Gesellschaftsvertrag der Hanse Digital GmbH berechnet, und warum ist sie angreifbar?",
+      "category": "vertragsklausel",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-009-02", "relevance": 3},
+        {"document_id": "CASE-009-04", "relevance": 2},
+        {"document_id": "CASE-009-05", "relevance": 2},
+        {"document_id": "CASE-009-01", "relevance": 1}
+      ],
+      "reference_answer": "§ 12 Abs. 3: anteiliger Buchwert ohne stille Reserven und Firmenwert, zahlbar in fünf gleichen unverzinslichen Jahresraten. Hier 38.700,00 EUR bei einem geschätzten Anteilswert von mindestens 240.000,00 EUR, also grobes Missverhältnis; zudem ist § 34 Abs. 3 GmbHG (Zahlung aus freiem Vermögen) zu beachten."
+    },
+    {
+      "id": "Q027",
+      "question": "Welchen Vergleichsrahmen hält die Kanzlei im Gesellschafterstreit Koch für angemessen, und was hatte die Gegenseite zuvor angeboten?",
+      "category": "gegenseite_und_verhandlung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-009-07", "relevance": 3},
+        {"document_id": "CASE-009-06", "relevance": 3}
+      ],
+      "reference_answer": "Vergleichsrahmen 150.000 bis 180.000 EUR (50 % bei Abschluss, 50 % nach sechs Monaten, mit Erledigungserklärung und Rückgabe der Kundenliste). Die Gegenseite hatte 110.000 EUR in zwei Raten angeboten; das Angebot wurde abgelehnt."
+    },
+    {
+      "id": "Q028",
+      "question": "Darf ein Auftragsverarbeiter die Herausgabe der Kundendaten nach Vertragsende wegen unbezahlter Rechnungen verweigern?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-010-02", "relevance": 3},
+        {"document_id": "CASE-010-06", "relevance": 3},
+        {"document_id": "CASE-010-04", "relevance": 2},
+        {"document_id": "CASE-010-05", "relevance": 2},
+        {"document_id": "CASE-010-01", "relevance": 1}
+      ],
+      "reference_answer": "Nein: § 8 des Auftragsverarbeitungsvertrags und Art. 28 Abs. 3 lit. g DSGVO verpflichten zur Herausgabe in maschinenlesbarem Format; Zurückbehaltungsrechte sind ausgeschlossen, § 273 BGB greift nicht. Die Gebühr von 450,00 EUR netto ist nicht gedeckt; der Zahlungsstreit ist getrennt zu führen."
+    },
+    {
+      "id": "Q029",
+      "question": "Welche Frist gilt für die Beantwortung eines Auskunftsersuchens nach Art. 15 DSGVO, und kann sie verlängert werden?",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-010-06", "relevance": 3},
+        {"document_id": "KANZLEI-01", "relevance": 2},
+        {"document_id": "KANZLEI-05", "relevance": 2},
+        {"document_id": "CASE-010-01", "relevance": 2},
+        {"document_id": "CASE-010-03", "relevance": 1}
+      ],
+      "reference_answer": "Ein Monat (Art. 12 Abs. 3 DSGVO); bei Komplexität ist eine Verlängerung um bis zu zwei Monate mit Zwischenbescheid möglich (Art. 12 Abs. 3 Satz 2 DSGVO). Im Fall Kern lief die Frist bis 12.02.2026."
+    },
+    {
+      "id": "Q030",
+      "question": "Welche Nutzungen des Fotos „Rheinufer in der Blauen Stunde“ waren von der Lizenz nicht gedeckt?",
+      "category": "faktenabfrage",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-011-02", "relevance": 3},
+        {"document_id": "CASE-011-03", "relevance": 3},
+        {"document_id": "CASE-011-01", "relevance": 2},
+        {"document_id": "CASE-011-04", "relevance": 2},
+        {"document_id": "CASE-011-05", "relevance": 2},
+        {"document_id": "CASE-011-06", "relevance": 1}
+      ],
+      "reference_answer": "Die Weiternutzung auf der Website nach Laufzeitende 31.01.2025, der Instagram-Beitrag vom 14.03.2025 (Social Media nicht umfasst) und die Plakatkampagne (Außenwerbung, 12 Citylights vom 23.03. bis 20.04.2025), jeweils ohne Urhebernennung."
+    },
+    {
+      "id": "Q031",
+      "question": "Welchen Schadensersatz für die Plakatkampagne hält die Kanzlei für realistisch, und weshalb weicht das von der ursprünglichen Forderung ab?",
+      "category": "berechnung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-011-06", "relevance": 3},
+        {"document_id": "CASE-011-05", "relevance": 2},
+        {"document_id": "CASE-011-04", "relevance": 2}
+      ],
+      "reference_answer": "Die Abmahnung setzte 1.800,00 EUR an, bezogen auf eine größere Kampagne. Bei 12 Citylights für vier Wochen erscheinen 1.100 bis 1.300 EUR realistisch; insgesamt wird ein Vergleich von 3.000 bis 3.500 EUR zuzüglich Abmahnkosten angestrebt."
+    },
+    {
+      "id": "Q032",
+      "question": "Welche Berufsunfähigkeitsrente ist im Vertrag von Herrn Lang versichert, und ab welchem Grad der Berufsunfähigkeit wird sie gezahlt?",
+      "category": "faktenabfrage",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-012-02", "relevance": 3},
+        {"document_id": "CASE-012-01", "relevance": 2}
+      ],
+      "reference_answer": "1.725,00 EUR monatlich bei Berufsunfähigkeit von mindestens 50 % mit Beitragsbefreiung; Monatsbeitrag 118,00 EUR, Versicherungsbeginn 01.09.2021."
+    },
+    {
+      "id": "Q033",
+      "question": "Kann sich ein Versicherer auf eine Verletzung der vorvertraglichen Anzeigepflicht berufen, wenn der Versicherungsnehmer dem Vermittler den Vorschaden mündlich genannt hat?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-012-07", "relevance": 3},
+        {"document_id": "CASE-012-05", "relevance": 3},
+        {"document_id": "CASE-012-04", "relevance": 2},
+        {"document_id": "CASE-012-06", "relevance": 2},
+        {"document_id": "CASE-012-02", "relevance": 2},
+        {"document_id": "CASE-012-03", "relevance": 1}
+      ],
+      "reference_answer": "Nach § 70 VVG wird die Kenntnis des Ausschließlichkeitsvertreters dem Versicherer zugerechnet; ein Rücktritt scheidet dann aus (§ 19 Abs. 5 Satz 2 VVG). Der Versicherungsnehmer trägt die Beweislast für die mündliche Mitteilung (Zeugin Marie Lang); der Versicherer bestreitet sie."
+    },
+    {
+      "id": "Q034",
+      "question": "Welcher Streitwert ist für die Klage auf Berufsunfähigkeitsrente im Fall Lang anzusetzen, und wie wird er berechnet?",
+      "category": "berechnung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "KANZLEI-04", "relevance": 3},
+        {"document_id": "CASE-012-07", "relevance": 3},
+        {"document_id": "CASE-012-02", "relevance": 1}
+      ],
+      "reference_answer": "Wiederkehrende Leistungen werden mit dem 3,5-fachen Jahresbetrag bewertet (§ 9 ZPO): 3,5 × 12 × 1.725,00 EUR = 72.450,00 EUR zuzüglich Rückstand."
+    },
+    {
+      "id": "Q035",
+      "question": "Ab wann kann der Kindesunterhalt aus der Jugendamtsurkunde herabgesetzt werden, und warum ist eine rückwirkende Herabsetzung problematisch?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-013-04", "relevance": 3},
+        {"document_id": "CASE-013-07", "relevance": 3},
+        {"document_id": "CASE-013-05", "relevance": 2},
+        {"document_id": "CASE-013-01", "relevance": 1},
+        {"document_id": "CASE-013-02", "relevance": 1}
+      ],
+      "reference_answer": "Rückwirkend grundsätzlich nur ab Zugang eines Abänderungsverlangens (hier schriftlich am 13.01.2026); die telefonische Bitte vom September 2025 ist schwer beweisbar. Zudem ist die Abfindung als Einkommen anzusetzen. Ab 01.02.2026 ist eine Herabsetzung (geschätzt auf rund 395 EUR) gut begründet."
+    },
+    {
+      "id": "Q036",
+      "question": "Welche Rolle spielt eine Abfindung des Unterhaltspflichtigen bei der Frage, ob der Kindesunterhalt herabgesetzt werden kann?",
+      "category": "gegenseite_und_verhandlung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-013-07", "relevance": 3},
+        {"document_id": "CASE-013-06", "relevance": 3},
+        {"document_id": "CASE-013-04", "relevance": 1}
+      ],
+      "reference_answer": "Die Gegenseite sieht die Abfindung als Einkommen bzw. einzusetzendes Vermögen und verlangt Auskunft (§ 1605 BGB). Intern: 11.900 EUR netto im Juli 2025, verteilt auf zwölf Monate rund 990 EUR; damit lag das Einkommen im ALG-Bezug bei ca. 2.770 EUR, eine Herabsetzung für Oktober 2025 bis Januar 2026 ist kaum durchsetzbar."
+    },
+    {
+      "id": "Q037",
+      "question": "Wie hoch ist der Pflichtteil von Frau Winter nach den Angaben der Gegenseite zum Nachlass?",
+      "category": "berechnung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-014-07", "relevance": 3},
+        {"document_id": "CASE-014-06", "relevance": 3},
+        {"document_id": "CASE-014-04", "relevance": 1}
+      ],
+      "reference_answer": "Reiner Nachlass 687.700,00 EUR, Pflichtteil (1/2) 343.850,00 EUR; mit Pflichtteilsergänzung wegen der Wohnung in Ostfildern 351.350,00 EUR (Szenario A) bzw. 408.350,00 EUR (Szenario B)."
+    },
+    {
+      "id": "Q038",
+      "question": "Wie wirkt sich die Abschmelzung bei der Pflichtteilsergänzung auf die Übertragung der Wohnung in Ostfildern aus?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-014-04", "relevance": 3},
+        {"document_id": "CASE-014-07", "relevance": 3},
+        {"document_id": "CASE-014-06", "relevance": 2},
+        {"document_id": "CASE-014-05", "relevance": 1}
+      ],
+      "reference_answer": "Die Übertragung am 12.07.2021 liegt im fünften Jahr vor dem Erbfall und wird nur zu 6/10 berücksichtigt (§ 2325 Abs. 3 BGB): bei gemischter Schenkung 25.000 × 6/10 = 15.000 EUR (Ergänzung 7.500 EUR), bei voller Unentgeltlichkeit 215.000 × 6/10 = 129.000 EUR (Ergänzung 64.500 EUR)."
+    },
+    {
+      "id": "Q039",
+      "question": "Wie hoch ist die Vertragsstrafe bei Überschreitung des Fertigstellungstermins im Bauvertrag Neuss-Holzheim, und wie ist sie begrenzt?",
+      "category": "vertragsklausel",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-015-02", "relevance": 3},
+        {"document_id": "CASE-015-05", "relevance": 3},
+        {"document_id": "CASE-015-06", "relevance": 2},
+        {"document_id": "CASE-015-07", "relevance": 1}
+      ],
+      "reference_answer": "0,2 % der Vergütung je Werktag (936,00 EUR), höchstens 5 % (23.400,00 EUR), der Höchstbetrag ist bereits erreicht. Die Vertragsstrafe muss bei der Abnahme vorbehalten werden (§ 341 Abs. 3 BGB) und wird auf weitergehenden Schadensersatz angerechnet."
+    },
+    {
+      "id": "Q040",
+      "question": "Welchen Teil der fünften Abschlagsrechnung dürfen die Bauherren Roth zurückhalten, wie wird das berechnet, und wie sieht die Gegenseite das?",
+      "category": "berechnung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-015-05", "relevance": 3},
+        {"document_id": "CASE-015-06", "relevance": 3},
+        {"document_id": "CASE-015-07", "relevance": 3},
+        {"document_id": "CASE-015-04", "relevance": 2},
+        {"document_id": "CASE-015-03", "relevance": 2}
+      ],
+      "reference_answer": "Zurückbehalten werden kann das Doppelte der Mängelbeseitigungskosten: 2 × 28.400,00 = 56.800,00 EUR, zu zahlen sind 13.400,00 EUR der 70.200,00 EUR. Die Gegenseite will nur das Doppelte der anerkannten Mängel (ca. 12.000 EUR, also 24.000 EUR) zulassen und fordert 46.200,00 EUR bis 17.07.2026."
+    },
+    {
+      "id": "Q041",
+      "question": "Warum kann die Westend Verpackung UG trotz Lieferung im November keinen Kaufpreis für die zweite Teillieferung der Einmachgläser verlangen?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-016-07", "relevance": 3},
+        {"document_id": "CASE-016-05", "relevance": 3},
+        {"document_id": "CASE-016-02", "relevance": 3},
+        {"document_id": "CASE-016-03", "relevance": 2},
+        {"document_id": "CASE-016-06", "relevance": 1},
+        {"document_id": "CASE-016-04", "relevance": 1}
+      ],
+      "reference_answer": "Die Lieferung war „fix zum 15.09.2025“ vereinbart (Fixgeschäft, § 376 HGB). Der Käufer erklärte am 16.09.2025 fristgerecht, nicht mehr auf Erfüllung zu bestehen, und verlangte Schadensersatz; der Erfüllungsanspruch ist erloschen. Die Individualabrede geht den AGB vor (§ 305b BGB), die Verkäuferin trägt das Beschaffungsrisiko."
+    },
+    {
+      "id": "Q042",
+      "question": "Welche Einwände erhebt die Gegenseite gegen den Deckungskauf des Feinkostherstellers, und wie bewertet die Kanzlei sie?",
+      "category": "gegenseite_und_verhandlung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-016-06", "relevance": 3},
+        {"document_id": "CASE-016-07", "relevance": 3},
+        {"document_id": "CASE-016-03", "relevance": 2},
+        {"document_id": "CASE-016-01", "relevance": 1}
+      ],
+      "reference_answer": "Die Gegenseite macht einen Verstoß gegen die Schadensminderungspflicht (Warten bis Anfang Oktober) und höherwertiges, dickwandigeres Glas (Vorteilsausgleich) geltend. Die Kanzlei verweist auf die eingeholten Vergleichsangebote (1,19 und 1,23 EUR), will das Datenblatt prüfen und lehnt den Nullvergleich ab (Gegenvorschlag 3.000 EUR)."
+    },
+    {
+      "id": "Q043",
+      "question": "Welche der drei beanstandeten Werbeaussagen für die Creme „Aloe Balance“ muss die Mandantin nach Einschätzung der Kanzlei unterlassen?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-017-04", "relevance": 3},
+        {"document_id": "CASE-017-03", "relevance": 2},
+        {"document_id": "CASE-017-02", "relevance": 2},
+        {"document_id": "CASE-017-07", "relevance": 2},
+        {"document_id": "CASE-017-06", "relevance": 1},
+        {"document_id": "CASE-017-05", "relevance": 1}
+      ],
+      "reference_answer": "„100 % natürlich“ (Phenoxyethanol enthalten) und „Hergestellt in Deutschland“ (Mischung in Polen) sind zu unterlassen. „Klinisch getestet“ belegt nur Hautverträglichkeit; isoliert kaum zu verteidigen, künftig nur mit dem Zusatz „auf Hautverträglichkeit“."
+    },
+    {
+      "id": "Q044",
+      "question": "Welche Abmahnkosten wurden im Streit um die Creme „Aloe Balance“ ursprünglich gefordert, und welchen Betrag soll die Mandantin nach der Entscheidung der Kanzlei akzeptieren?",
+      "category": "berechnung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-017-07", "relevance": 3},
+        {"document_id": "CASE-017-06", "relevance": 3},
+        {"document_id": "CASE-017-02", "relevance": 2},
+        {"document_id": "CASE-017-05", "relevance": 2}
+      ],
+      "reference_answer": "Gefordert waren 2.404,10 EUR (Gegenstandswert 40.000 EUR). Das Angebot der Gegenseite von 1.680,00 EUR einschließlich Auslagen soll angenommen werden, wenn die Erklärung insgesamt bis 13.02.2026 abgegeben wird."
+    },
+    {
+      "id": "Q045",
+      "question": "Bis wann musste Herr Lindner Einspruch gegen den Vollstreckungsbescheid der Neckar Konsumbank einlegen?",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-018-04", "relevance": 3},
+        {"document_id": "CASE-018-01", "relevance": 3},
+        {"document_id": "CASE-018-05", "relevance": 2},
+        {"document_id": "KANZLEI-01", "relevance": 1}
+      ],
+      "reference_answer": "Bei Zustellung am 09.01.2026 lief die Zweiwochenfrist bis 23.01.2026; der Einspruch wurde am 20.01.2026 eingelegt."
+    },
+    {
+      "id": "Q046",
+      "question": "Welche Positionen der Forderung der Neckar Konsumbank waren überhöht oder unzulässig, und auf welchen Betrag reduzierte sich die Gesamtforderung?",
+      "category": "berechnung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-018-04", "relevance": 3},
+        {"document_id": "CASE-018-05", "relevance": 3},
+        {"document_id": "CASE-018-06", "relevance": 3},
+        {"document_id": "CASE-018-03", "relevance": 2},
+        {"document_id": "CASE-018-02", "relevance": 2}
+      ],
+      "reference_answer": "Verzugszinsen dürfen nur fünf statt neun Prozentpunkte über dem Basiszins betragen (§ 497 BGB), das Kündigungsbearbeitungsentgelt von 460,00 EUR ist unzulässig und erstattungsfähige Mahnkosten betragen nur 90,00 EUR. Die Bank korrigierte die Forderung von 17.275,00 EUR auf 16.062,40 EUR (Kanzlei-Berechnung 16.050,00 EUR)."
+    },
+    {
+      "id": "Q047",
+      "question": "Welchen Mindestabstand zur Grundstücksgrenze sieht die Nachbarschaftsvereinbarung Am Rheinbogen für Wärmepumpen vor?",
+      "category": "vertragsklausel",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-019-02", "relevance": 3},
+        {"document_id": "CASE-019-04", "relevance": 2},
+        {"document_id": "CASE-019-03", "relevance": 1},
+        {"document_id": "CASE-019-01", "relevance": 1}
+      ],
+      "reference_answer": "§ 3: mindestens 3 m zur gemeinsamen Grundstücksgrenze und Einhaltung der TA-Lärm-Richtwerte; die Anlage steht nur 1,2 m von der Grenze entfernt."
+    },
+    {
+      "id": "Q048",
+      "question": "Muss im Nachbarschaftsstreit um die Wärmepumpe vor einer Klage ein Schlichtungsverfahren durchgeführt werden?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-019-06", "relevance": 3},
+        {"document_id": "CASE-019-07", "relevance": 3},
+        {"document_id": "CASE-019-02", "relevance": 2},
+        {"document_id": "CASE-019-04", "relevance": 1}
+      ],
+      "reference_answer": "In Nordrhein-Westfalen ist vor Klageerhebung regelmäßig ein Schlichtungsverfahren vor dem Schiedsamt nötig (§ 53 JustG NRW zu prüfen); § 4 der Vereinbarung sieht es ebenfalls vor. Antrag am 02.04.2026, Termin am 12.05.2026; bei Erfolglosigkeit wird eine Bescheinigung ausgestellt, die zur Klage berechtigt."
+    },
+    {
+      "id": "Q049",
+      "question": "Wie argumentiert der Nachbar gegen die Lärmschutzforderung wegen der Wärmepumpe, und wie bewertet die Kanzlei seine Einwände?",
+      "category": "gegenseite_und_verhandlung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-019-05", "relevance": 3},
+        {"document_id": "CASE-019-06", "relevance": 3},
+        {"document_id": "CASE-019-03", "relevance": 2},
+        {"document_id": "CASE-019-02", "relevance": 2}
+      ],
+      "reference_answer": "Der Nachbar verweist auf das CE-Kennzeichen, hält das Privatgutachten für nicht neutral (Messung in Hitzeperiode) und meint, „technische Anlagen“ umfasse nur Pools und Pumpen. Die Kanzlei sieht den Wortlaut von § 3 (Wärmepumpen) als eindeutig, räumt aber die Schwäche des Privatgutachtens ein und erwägt eine Messung durch die Stadt oder ein gerichtliches Gutachten."
+    },
+    {
+      "id": "Q050",
+      "question": "Wie lange verjähren Ansprüche aus der Pauschalreise nach Kreta, und bis wann konkret?",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-020-07", "relevance": 3},
+        {"document_id": "CASE-020-02", "relevance": 3},
+        {"document_id": "CASE-020-01", "relevance": 1}
+      ],
+      "reference_answer": "Zwei Jahre ab dem vertraglichen Reiseende (§ 651j BGB), also bis 26.07.2027."
+    },
+    {
+      "id": "Q051",
+      "question": "Welche Minderung fordert Frau Hofmann für die Kreta-Reise insgesamt, und welchen Betrag bietet die Veranstalterin an?",
+      "category": "berechnung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-020-05", "relevance": 3},
+        {"document_id": "CASE-020-06", "relevance": 3},
+        {"document_id": "CASE-020-04", "relevance": 2},
+        {"document_id": "CASE-020-07", "relevance": 2}
+      ],
+      "reference_answer": "Gefordert werden 4.485,00 EUR Minderung (Baulärm 2.275, Schimmel 975, Pool 780, Buffet 455) plus 1.500,00 EUR Entschädigung. Die Veranstalterin bietet 2.400,00 EUR (zuvor 1.200,00 EUR Kulanz); die Kanzlei hält 2.800 bis 3.600 EUR für realistisch und schlägt 3.600 EUR vor."
+    },
+    {
+      "id": "Q052",
+      "question": "Welche Umstände der ärztlichen Aufklärung vor der Knie-Totalendoprothese sprechen für die Patientin Richter, und was spricht für die Klinik?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-021-04", "relevance": 3},
+        {"document_id": "CASE-021-07", "relevance": 3},
+        {"document_id": "CASE-021-02", "relevance": 2},
+        {"document_id": "CASE-021-06", "relevance": 2},
+        {"document_id": "CASE-021-03", "relevance": 1},
+        {"document_id": "CASE-021-01", "relevance": 1}
+      ],
+      "reference_answer": "Für die Patientin: Aufklärung erst am Nachmittag vor der OP (§ 630e Abs. 2 Nr. 2 BGB), Fußheberschwäche nicht ausdrücklich genannt, Teilprothese nur als „nicht geeignet“ vermerkt. Für die Klinik: unterschriebener Bogen mit Handvermerken, Zeugin Dr. Thiel und der Einwand der hypothetischen Einwilligung; Obsiegenschance etwa 40–50 %."
+    },
+    {
+      "id": "Q053",
+      "question": "Zu welchem Ergebnis kam das Gutachten des Medizinischen Dienstes zum Behandlungsfehlervorwurf bei der Knie-Operation?",
+      "category": "faktenabfrage",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-021-05", "relevance": 3},
+        {"document_id": "CASE-021-06", "relevance": 2},
+        {"document_id": "CASE-021-07", "relevance": 2},
+        {"document_id": "CASE-021-04", "relevance": 1}
+      ],
+      "reference_answer": "Es liegt kein Behandlungsfehler vor: Indikation, Operationstechnik und Implantatwahl entsprachen dem Standard, die Peroneusparese ist eine bekannte seltene Komplikation, die Wundinfektion trat trotz Prophylaxe auf. Die Aufklärung war nicht Gegenstand des Gutachtens."
+    },
+    {
+      "id": "Q054",
+      "question": "Welches Vergleichsangebot hat die Haftpflichtversicherung der Nordstern Klinik gemacht, und welchen Vergleichsrahmen hält die Kanzlei für realistisch?",
+      "category": "gegenseite_und_verhandlung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-021-06", "relevance": 3},
+        {"document_id": "CASE-021-07", "relevance": 3},
+        {"document_id": "CASE-021-04", "relevance": 1}
+      ],
+      "reference_answer": "Die Versicherung bietet 18.000,00 EUR bis 31.07.2026 (31,9 % der 56.500,00 EUR). Die Kanzlei hält 28.000 bis 34.000 EUR für realistisch und macht einen Gegenvorschlag über 32.000 EUR bis 24.07.2026, andernfalls Klage vor dem Landgericht Leipzig."
+    },
+    {
+      "id": "Q055",
+      "question": "Wann verjähren die Sachmängelansprüche von Herrn Kolb aus dem Gebrauchtwagenkauf?",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-024-07", "relevance": 3},
+        {"document_id": "CASE-024-02", "relevance": 3},
+        {"document_id": "CASE-024-01", "relevance": 1}
+      ],
+      "reference_answer": "Die Verjährung ist vertraglich auf ein Jahr ab Ablieferung (28.11.2025) verkürzt und endet am 28.11.2026; Verhandlungen hemmen, sicherheitshalber ist vorher Klage zu erheben."
+    },
+    {
+      "id": "Q056",
+      "question": "Welche Schadensposten macht Herr Kolb wegen des Getriebeschadens geltend, und wie hoch sind sie insgesamt?",
+      "category": "berechnung",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-024-07", "relevance": 3},
+        {"document_id": "CASE-024-05", "relevance": 2},
+        {"document_id": "CASE-024-01", "relevance": 2},
+        {"document_id": "CASE-024-04", "relevance": 1}
+      ],
+      "reference_answer": "Reparatur 5.100,00 + Gutachten 690,00 + Transport/Diagnose 450,00 + Mietwagen bisher 620,00 = 6.860,00 EUR zuzüglich weiterer Mietwagenkosten."
+    },
+    {
+      "id": "Q057",
+      "question": "Wie wird beurteilt, ob der Getriebeschaden schon bei Übergabe vorlag, und welche Gegenargumente bringt die Verkäuferin vor?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-024-05", "relevance": 3},
+        {"document_id": "CASE-024-07", "relevance": 3},
+        {"document_id": "CASE-024-06", "relevance": 3},
+        {"document_id": "CASE-024-04", "relevance": 2},
+        {"document_id": "CASE-024-03", "relevance": 2},
+        {"document_id": "CASE-024-02", "relevance": 1}
+      ],
+      "reference_answer": "Es gilt die Vermutung des § 477 BGB. Das Gutachten sieht einen länger bestehenden Schaden (Abrieb, Fehlereinträge bereits bei 61.600 km, keine unsachgemäße Benutzung). Die Verkäuferin beruft sich auf Verschleiß, hohe Fahrleistung (rund 5.350 km in sechs Wochen) und erkennt das einseitig beauftragte Privatgutachten nicht an."
+    },
+    {
+      "id": "Q058",
+      "question": "Weshalb wurde bei der Werklohnforderung der Ostwald Tischlerei gegen die Elbwerk Gastro UG direkt Klage erhoben und kein Mahnbescheid beantragt?",
+      "category": "rechtliche_bewertung",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-025-05", "relevance": 3},
+        {"document_id": "CASE-025-01", "relevance": 1},
+        {"document_id": "CASE-025-04", "relevance": 1}
+      ],
+      "reference_answer": "Ein Mahnbescheid wäre zwar günstiger, würde bei Widerspruch aber Zeit kosten; wegen der Liquiditätsprobleme der Schuldnerin ist ein früher Titel wichtig. Die Klage geht an das Landgericht Berlin (Streitwert 5.236,00 EUR, über 5.000 EUR)."
+    },
+    {
+      "id": "Q059",
+      "question": "Wie ist der aktuelle Stand der Zwangsvollstreckung gegen die Elbwerk Gastro UG, und wie hoch ist die noch offene Forderung?",
+      "category": "faktenabfrage",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "CASE-025-07", "relevance": 3},
+        {"document_id": "CASE-025-06", "relevance": 1}
+      ],
+      "reference_answer": "Das Versäumnisurteil ist rechtskräftig; durch Pfändung der Kartenumsätze und des Kontos wurden 1.920,00 EUR eingezogen, zusätzlich zahlte die Schuldnerin freiwillig 600,00 EUR. Offen sind rund 4.630,00 EUR (von ca. 7.150,00 EUR); empfohlen werden weitere Pfändung und eine Ratenvereinbarung mit Verfallklausel."
+    },
+    {
+      "id": "Q060",
+      "question": "In welchen Mandaten wurde ein Zurückbehaltungsrecht in Höhe des Doppelten der Mängelbeseitigungskosten geltend gemacht?",
+      "category": "mehrere_faelle",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-007-04", "relevance": 3},
+        {"document_id": "CASE-015-05", "relevance": 3},
+        {"document_id": "CASE-007-05", "relevance": 2},
+        {"document_id": "CASE-007-06", "relevance": 2},
+        {"document_id": "CASE-007-07", "relevance": 2},
+        {"document_id": "CASE-015-06", "relevance": 2},
+        {"document_id": "CASE-015-07", "relevance": 2}
+      ],
+      "reference_answer": "Im Werkvertragsstreit Wagner ./. Linden UG (CASE-007, § 641 Abs. 3 BGB) und im Bauvertrag Roth ./. Rheinhaus Bau GmbH (CASE-015, Abschlagsrate 5)."
+    },
+    {
+      "id": "Q061",
+      "question": "In welchen Mandaten wird die Wirksamkeit einer Vertragsklausel nach den Maßstäben der AGB-Kontrolle (§ 307 BGB) angezweifelt?",
+      "category": "mehrere_faelle",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-005-05", "relevance": 3},
+        {"document_id": "CASE-005-07", "relevance": 3},
+        {"document_id": "CASE-008-05", "relevance": 3},
+        {"document_id": "CASE-008-07", "relevance": 3},
+        {"document_id": "CASE-022-05", "relevance": 3},
+        {"document_id": "CASE-022-06", "relevance": 3},
+        {"document_id": "CASE-016-07", "relevance": 1}
+      ],
+      "reference_answer": "Gewerbemiete Fischer (Ankündigungsklausel für Minderung, CASE-005), Lizenzvertrag Neumann (verschuldensunabhängige Vertragsstrafe, CASE-008) und Gewerbemiete Fuchs (Einwendungsfrist mit Anerkenntnisfiktion, CASE-022)."
+    },
+    {
+      "id": "Q062",
+      "question": "In welchen Mandaten wurde eine Unterlassungserklärung nach Hamburger Brauch angeboten oder vereinbart?",
+      "category": "mehrere_faelle",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-008-05", "relevance": 3},
+        {"document_id": "CASE-011-05", "relevance": 3},
+        {"document_id": "CASE-017-05", "relevance": 3},
+        {"document_id": "CASE-008-06", "relevance": 2},
+        {"document_id": "CASE-017-04", "relevance": 2}
+      ],
+      "reference_answer": "Im Lizenzstreit Neumann ./. Neckar AG (CASE-008), im Urheberrechtsfall Sommer ./. Nordstern Immobilien AG (CASE-011, modifizierte Erklärung der Gegenseite) und im Wettbewerbsstreit Naturkraft Kosmetik ./. Linden Naturprodukte AG (CASE-017)."
+    },
+    {
+      "id": "Q063",
+      "question": "In welchen Mandaten ist das Kostenrisiko nicht oder nur teilweise durch eine Rechtsschutzversicherung abgedeckt?",
+      "category": "mehrere_faelle",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-004-06", "relevance": 3},
+        {"document_id": "CASE-009-04", "relevance": 3},
+        {"document_id": "CASE-014-01", "relevance": 3},
+        {"document_id": "CASE-015-01", "relevance": 3},
+        {"document_id": "CASE-023-01", "relevance": 3},
+        {"document_id": "KANZLEI-02", "relevance": 1}
+      ],
+      "reference_answer": "Keine Rechtsschutzversicherung: Schmidt ./. Mainufer UG (CASE-004), Koch ./. Hanse Digital GmbH (CASE-009), Winter ./. Hartl (CASE-014). Rechtsschutz ohne den benötigten Baustein: Roth ./. Rheinhaus Bau GmbH (ohne Baurechtsbaustein, CASE-015) und Brinkmann ./. Isar Digital AG (ohne Arbeitsrecht, CASE-023)."
+    },
+    {
+      "id": "Q064",
+      "question": "Wie hoch ist der Streitwert der Kündigungsschutzklagen in den Mandaten Hartmann und Brinkmann, und nach welcher Regel wird er berechnet?",
+      "category": "mehrere_faelle",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "KANZLEI-04", "relevance": 3},
+        {"document_id": "CASE-002-04", "relevance": 3},
+        {"document_id": "CASE-023-05", "relevance": 3},
+        {"document_id": "CASE-002-05", "relevance": 2},
+        {"document_id": "CASE-023-06", "relevance": 2}
+      ],
+      "reference_answer": "Höchstens drei Bruttomonatsgehälter (§ 42 Abs. 2 GKG): Hartmann 3 × 4.850,00 = 14.550,00 EUR, Brinkmann drei Monatsvergütungen = 19.440,00 EUR."
+    },
+    {
+      "id": "Q065",
+      "question": "In welchen Mietverhältnissen droht die Vermieterseite wegen Zahlungsrückständen mit einer fristlosen Kündigung, und um welche Beträge geht es?",
+      "category": "mehrere_faelle",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-005-04", "relevance": 3},
+        {"document_id": "CASE-022-03", "relevance": 3},
+        {"document_id": "CASE-005-05", "relevance": 2},
+        {"document_id": "CASE-005-06", "relevance": 2},
+        {"document_id": "CASE-005-07", "relevance": 2},
+        {"document_id": "CASE-022-05", "relevance": 2},
+        {"document_id": "CASE-005-01", "relevance": 1},
+        {"document_id": "CASE-022-01", "relevance": 1}
+      ],
+      "reference_answer": "Gewerbemiete Fischer (CASE-005): Rückstand von 2.587,50 EUR netto, zuletzt streitig 1.380,00 EUR netto. Gewerbemiete Fuchs (CASE-022): Betriebskostennachforderungen von 4.825,00 EUR für 2023/2024, berechtigt nur ca. 1.028,00 EUR."
+    },
+    {
+      "id": "Q066",
+      "question": "Hilft die Zahlung der Rückstände innerhalb der Schonfrist bei einer Gewerbemiete, eine fristlose Kündigung wegen Zahlungsverzugs abzuwenden?",
+      "category": "mehrere_faelle",
+      "difficulty": "schwer",
+      "relevant_documents": [
+        {"document_id": "CASE-005-07", "relevance": 3},
+        {"document_id": "CASE-022-05", "relevance": 3},
+        {"document_id": "CASE-005-04", "relevance": 1},
+        {"document_id": "CASE-022-03", "relevance": 1}
+      ],
+      "reference_answer": "Nein, die Schonfristregelung des § 569 Abs. 3 Nr. 2 BGB gilt nur für Wohnraum. Bei Gewerbemiete trägt, wer zu hoch mindert oder zu wenig zahlt, das volle Risiko; empfohlen wird Zahlung unter Vorbehalt der Rückforderung."
+    },
+    {
+      "id": "Q067",
+      "question": "Wie ist ein Fristende zu behandeln, das auf einen Sonntag oder Feiertag fällt, und welche Vorfristen sind im Fristenkalender einzutragen?",
+      "category": "kanzleiorganisation",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "KANZLEI-01", "relevance": 3}
+      ],
+      "reference_answer": "Das Fristende verschiebt sich auf den nächsten Werktag (§ 222 ZPO, §§ 187, 188 BGB). Eingetragen werden Hauptfrist, erste Vorfrist eine Woche vorher und zweite Vorfrist zwei Werktage vorher."
+    },
+    {
+      "id": "Q068",
+      "question": "Wie hoch darf die Gebühr für die Erstberatung eines Verbrauchers höchstens sein?",
+      "category": "kanzleiorganisation",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "KANZLEI-03", "relevance": 3}
+      ],
+      "reference_answer": "Höchstens 190,00 EUR zuzüglich Umsatzsteuer (§ 34 Abs. 1 Satz 3 RVG)."
+    },
+    {
+      "id": "Q069",
+      "question": "Welche Prüfungen sind vor der Annahme eines neuen Mandats durchzuführen?",
+      "category": "kanzleiorganisation",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "KANZLEI-02", "relevance": 3},
+        {"document_id": "KANZLEI-01", "relevance": 1},
+        {"document_id": "KANZLEI-03", "relevance": 1}
+      ],
+      "reference_answer": "Identität und Auftraggeber feststellen, Interessenkollision in der Konfliktdatenbank prüfen, Fristen sofort klären, Auftrag und Vollmacht festlegen, Rechtsschutzdeckung abfragen, Kostenhinweis geben und keine Erfolgsaussicht zusichern."
+    },
+    {
+      "id": "Q070",
+      "question": "Dürfen Mandantendaten in externe KI-Dienste eingegeben werden, und wie lange sind Handakten aufzubewahren?",
+      "category": "kanzleiorganisation",
+      "difficulty": "leicht",
+      "relevant_documents": [
+        {"document_id": "KANZLEI-05", "relevance": 3}
+      ],
+      "reference_answer": "Nein, Mandantendaten dürfen nicht in externe KI-Dienste eingegeben werden. Handakten sind sechs Jahre nach Mandatsende aufzubewahren (§ 50 Abs. 2 BRAO)."
+    },
+    {
+      "id": "Q071",
+      "question": "Wer trägt in der ersten Instanz vor dem Arbeitsgericht die Anwaltskosten?",
+      "category": "kanzleiorganisation",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "KANZLEI-03", "relevance": 3},
+        {"document_id": "KANZLEI-02", "relevance": 3},
+        {"document_id": "CASE-002-04", "relevance": 2}
+      ],
+      "reference_answer": "Jede Partei trägt ihre Anwaltskosten selbst (§ 12a ArbGG); darüber ist der Mandant bei Mandatsannahme aufzuklären."
+    },
+    {
+      "id": "Q072",
+      "question": "Ab welchem Streitwert ist das Landgericht sachlich zuständig, und besteht dort Anwaltszwang?",
+      "category": "kanzleiorganisation",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "KANZLEI-04", "relevance": 3},
+        {"document_id": "CASE-025-05", "relevance": 2},
+        {"document_id": "CASE-004-06", "relevance": 1},
+        {"document_id": "CASE-024-07", "relevance": 1}
+      ],
+      "reference_answer": "Das Amtsgericht ist bis 5.000,00 EUR zuständig, das Landgericht darüber (§§ 23 Nr. 1, 71 GVG); vor dem Landgericht und den Oberlandesgerichten besteht Anwaltszwang."
+    },
+    {
+      "id": "Q073",
+      "question": "Wie hat das Arbeitsgericht Hamburg im Kammertermin am 15.10.2026 im Fall Hartmann entschieden?",
+      "category": "nicht_im_korpus",
+      "difficulty": "schwer",
+      "relevant_documents": [],
+      "reference_answer": "Nicht im Korpus: Der jüngste Stand (10.09.2026) nennt nur den Termin am 15.10.2026, ein Ergebnis liegt nicht vor."
+    },
+    {
+      "id": "Q074",
+      "question": "Welche Regelungen gelten in der Kanzlei für Homeoffice und mobiles Arbeiten?",
+      "category": "nicht_im_korpus",
+      "difficulty": "leicht",
+      "relevant_documents": [],
+      "reference_answer": "Nicht im Korpus: Die Kanzleirichtlinien behandeln Homeoffice nicht."
+    },
+    {
+      "id": "Q075",
+      "question": "Wie hoch ist die Abfindung im Kündigungsschutzverfahren Meier gegen die Hansa Logistik GmbH?",
+      "category": "nicht_im_korpus",
+      "difficulty": "leicht",
+      "relevant_documents": [],
+      "reference_answer": "Nicht im Korpus: Ein Mandat Meier ./. Hansa Logistik GmbH existiert nicht."
+    },
+    {
+      "id": "Q076",
+      "question": "Welche Erfolgsaussichten hat die Räumungsklage gegen Herrn Schulz wegen Mietrückständen?",
+      "category": "nicht_im_korpus",
+      "difficulty": "mittel",
+      "relevant_documents": [],
+      "reference_answer": "Nicht im Korpus: Ein Mandat mit einem Mieter Schulz existiert nicht."
+    },
+    {
+      "id": "Q077",
+      "question": "Wie ist das Eilverfahren von Frau Becker gegen die Alpenblick UG vor dem Landgericht Hamburg ausgegangen?",
+      "category": "nicht_im_korpus",
+      "difficulty": "schwer",
+      "relevant_documents": [],
+      "reference_answer": "Nicht im Korpus: Der Aktenvermerk plant nur einen Antrag auf einstweilige Verfügung bis 13.02.2026, ein Ergebnis ist nicht dokumentiert."
+    }
+  ]
+}
