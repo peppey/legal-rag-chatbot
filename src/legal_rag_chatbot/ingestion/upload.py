@@ -20,7 +20,4 @@ def upload_file(
 
     blob.upload_from_filename(str(local_file))
 
-    print(
-        f"Uploaded {local_file} to "
-        f"gs://{bucket_name}/{destination_path}"
-    )
+    print(f"Uploaded {local_file} to gs://{bucket_name}/{destination_path}")

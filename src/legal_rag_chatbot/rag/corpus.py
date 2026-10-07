@@ -2,12 +2,13 @@ import agentplatform
 from agentplatform import types
 from google.genai import types as genai_types
 
-
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 
 CORPUS_DISPLAY_NAME = "legal-counsel-corpus"
-GCS_PATH = "gs://legal-rag-chatbot-documents/raw/synthetic_legal_counsel_documents.jsonl"
+GCS_PATH = (
+    "gs://legal-rag-chatbot-documents/raw/synthetic_legal_counsel_documents.jsonl"
+)
 
 
 def create_corpus() -> str:

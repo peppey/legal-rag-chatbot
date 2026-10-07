@@ -2,13 +2,9 @@ from pathlib import Path
 
 from legal_rag_chatbot.ingestion.upload import upload_file
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DATASET_PATH = (
-    PROJECT_ROOT
-    / "data"
-    / "processed"
-    / "synthetic_legal_counsel_documents.jsonl"
+    PROJECT_ROOT / "data" / "processed" / "synthetic_legal_counsel_documents.jsonl"
 )
 
 

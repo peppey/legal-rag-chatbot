@@ -1,13 +1,11 @@
 import agentplatform
 from google.genai import types as genai_types
 
-
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 
 CORPUS_NAME = (
-    "projects/legal-rag-chatbot/locations/europe-west3/"
-    "ragCorpora/6917529027641081856"
+    "projects/legal-rag-chatbot/locations/europe-west3/ragCorpora/6917529027641081856"
 )
 
 
@@ -41,6 +39,4 @@ def retrieve_contexts(question: str) -> None:
 
 
 if __name__ == "__main__":
-    retrieve_contexts(
-        "Welche rechtlichen Probleme bestehen in diesem Fall?"
-    )
+    retrieve_contexts("Welche rechtlichen Probleme bestehen in diesem Fall?")

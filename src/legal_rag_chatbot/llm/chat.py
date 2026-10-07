@@ -1,13 +1,11 @@
 from google import genai
 from google.genai import types
 
-
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 
 CORPUS_NAME = (
-    "projects/legal-rag-chatbot/locations/europe-west3/"
-    "ragCorpora/6917529027641081856"
+    "projects/legal-rag-chatbot/locations/europe-west3/ragCorpora/6917529027641081856"
 )
 
 
@@ -65,8 +63,6 @@ def answer_question(question: str) -> str:
 
 
 if __name__ == "__main__":
-    answer = answer_question(
-        "Welche rechtlichen Probleme bestehen im Fall CASE-024?"
-    )
+    answer = answer_question("Welche rechtlichen Probleme bestehen im Fall CASE-024?")
 
     print(answer)
