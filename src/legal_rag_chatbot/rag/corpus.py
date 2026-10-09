@@ -7,7 +7,7 @@ LOCATION = "europe-west3"
 
 CORPUS_DISPLAY_NAME = "legal-counsel-corpus"
 GCS_PATH = (
-    "gs://legal-rag-chatbot-documents/raw/synthetic_legal_counsel_documents.jsonl"
+    "gs://legal-rag-chatbot-documents/raw/synthetic_legal_counsel_documents_slim.jsonl"
 )
 
 
