@@ -7,7 +7,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Callable, Literal, TypeVar
 
 from google import genai
 from google.genai import types
@@ -20,6 +20,8 @@ from legal_rag_chatbot.evaluation.dataset import (
 )
 from legal_rag_chatbot.llm.chat import answer_question
 from legal_rag_chatbot.rag.query import LOCATION, PROJECT_ID
+
+T = TypeVar("T")
 
 JUDGE_MODEL = "gemini-2.5-pro"
 
@@ -80,17 +82,22 @@ def judge(client: genai.Client, question: dict[str, Any], answer: str) -> Judgem
     return response.parsed
 
 
+def _with_retry(call: Callable[[], T], attempts: int = 6) -> T:
+    """Retry a call with exponential backoff (5s, 10s, 20s, ...) for quota errors."""
+    for attempt in range(attempts):
+        try:
+            return call()
+        except Exception:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(5 * 2**attempt)
+    raise AssertionError("unreachable")
+
+
 def evaluate_question(client: genai.Client, question: dict[str, Any]) -> dict[str, Any]:
     """Generate an answer for one question and judge it."""
-    for attempt in range(4):
-        try:
-            answer = answer_question(question["question"]) or ""
-            judgement = judge(client, question, answer)
-            break
-        except Exception:
-            if attempt == 3:
-                raise
-            time.sleep(2**attempt)
+    answer = _with_retry(lambda: answer_question(question["question"])) or ""
+    judgement = _with_retry(lambda: judge(client, question, answer))
 
     return {
         "id": question["id"],
@@ -132,7 +139,7 @@ def main() -> None:
     """Run the answer evaluation, print the tables and save the JSON report."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, help="Only evaluate the first N questions")
-    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--output", type=Path, help="Where to write the JSON report")
     args = parser.parse_args()
 

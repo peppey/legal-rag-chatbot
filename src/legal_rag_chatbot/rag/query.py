@@ -7,7 +7,7 @@ PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 
 CORPUS_NAME = (
-    "projects/legal-rag-chatbot/locations/europe-west3/ragCorpora/6917529027641081856"
+    "projects/187644435346/locations/europe-west3/ragCorpora/7991637538768945152"
 )
 
 
