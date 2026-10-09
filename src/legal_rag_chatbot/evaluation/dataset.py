@@ -13,6 +13,7 @@ NO_ANSWER_CATEGORY = "nicht_im_korpus"
 
 
 def load_questions(path: Path = EVAL_PATH) -> list[dict[str, Any]]:
+    """Load the evaluation questions from the dataset file."""
     with path.open(encoding="utf-8") as f:
         return json.load(f)["questions"]
 

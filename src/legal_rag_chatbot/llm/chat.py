@@ -28,6 +28,7 @@ Gib keine abschließende Rechtsberatung.
 
 
 def answer_question(question: str) -> str:
+    """Answer a question with Gemini, grounded in the RAG corpus."""
 
     client = genai.Client(
         vertexai=True,

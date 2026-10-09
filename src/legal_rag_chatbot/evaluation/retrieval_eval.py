@@ -27,6 +27,7 @@ CONTENT_PATTERN = re.compile(r"^content (.+)", re.MULTILINE | re.DOTALL)
 
 
 def _normalize(text: str) -> str:
+    """Collapse all whitespace runs into single spaces."""
     return " ".join(text.split())
 
 
@@ -59,6 +60,7 @@ def evaluate_question(
     normalized_corpus: dict[str, str],
     top_k: int,
 ) -> dict[str, Any]:
+    """Retrieve contexts for one question and compute its retrieval metrics."""
     for attempt in range(4):
         try:
             contexts = fetch_contexts(question["question"], top_k=top_k, client=client)
@@ -105,11 +107,13 @@ def evaluate_question(
 
 
 def _mean(values: list[float]) -> float:
+    """Mean that ignores NaN values."""
     values = [v for v in values if not math.isnan(v)]
     return sum(values) / len(values) if values else float("nan")
 
 
 def aggregate(results: list[dict[str, Any]]) -> dict[str, float]:
+    """Average the metrics over all questions that have relevant documents."""
     names = ["mrr"] + [
         f"{m}@{k}"
         for m in ("hit", "recall", "core_recall", "precision", "ndcg")
@@ -122,6 +126,7 @@ def aggregate(results: list[dict[str, Any]]) -> dict[str, float]:
 
 
 def print_table(title: str, groups: dict[str, dict[str, float]]) -> None:
+    """Print aggregated metrics as a table, skipping empty groups."""
     columns = [
         "n",
         "mrr",
@@ -144,6 +149,7 @@ def print_table(title: str, groups: dict[str, dict[str, float]]) -> None:
 
 
 def run(top_k: int, limit: int | None, workers: int) -> dict[str, Any]:
+    """Evaluate all questions in parallel and return the full report."""
     questions = load_questions()[:limit]
     corpus = load_corpus()
     normalized_corpus = {
@@ -188,6 +194,7 @@ def run(top_k: int, limit: int | None, workers: int) -> dict[str, Any]:
 
 
 def main() -> None:
+    """Run the retrieval evaluation, print the tables and save the JSON report."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--top-k", type=int, default=max(KS), help="Chunks per query")
     parser.add_argument("--limit", type=int, help="Only evaluate the first N questions")

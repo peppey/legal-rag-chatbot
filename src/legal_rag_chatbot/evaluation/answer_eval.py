@@ -58,6 +58,7 @@ class Judgement(BaseModel):
 
 
 def judge(client: genai.Client, question: dict[str, Any], answer: str) -> Judgement:
+    """Let the judge model grade an answer against the reference answer."""
     unanswerable = question["category"] == NO_ANSWER_CATEGORY
     prompt = JUDGE_PROMPT.format(
         question=question["question"],
@@ -80,6 +81,7 @@ def judge(client: genai.Client, question: dict[str, Any], answer: str) -> Judgem
 
 
 def evaluate_question(client: genai.Client, question: dict[str, Any]) -> dict[str, Any]:
+    """Generate an answer for one question and judge it."""
     for attempt in range(4):
         try:
             answer = answer_question(question["question"]) or ""
@@ -102,6 +104,7 @@ def evaluate_question(client: genai.Client, question: dict[str, Any]) -> dict[st
 
 
 def aggregate(results: list[dict[str, Any]]) -> dict[str, float]:
+    """Compute verdict, hallucination and abstention rates."""
     n = len(results)
     return {
         "n": n,
@@ -114,6 +117,7 @@ def aggregate(results: list[dict[str, Any]]) -> dict[str, float]:
 
 
 def print_table(title: str, groups: dict[str, dict[str, float]]) -> None:
+    """Print aggregated judgement rates as a table."""
     columns = ["n", "richtig", "teilweise", "falsch", "hallucination", "abstained"]
     print(f"\n{title}")
     print(f"{'':28}" + "".join(f"{c:>15}" for c in columns))
@@ -125,6 +129,7 @@ def print_table(title: str, groups: dict[str, dict[str, float]]) -> None:
 
 
 def main() -> None:
+    """Run the answer evaluation, print the tables and save the JSON report."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, help="Only evaluate the first N questions")
     parser.add_argument("--workers", type=int, default=4)
