@@ -18,12 +18,18 @@ from legal_rag_chatbot.evaluation.dataset import (
     RESULTS_DIR,
     load_questions,
 )
-from legal_rag_chatbot.llm.chat import answer_question
-from legal_rag_chatbot.rag.query import LOCATION, PROJECT_ID
+from legal_rag_chatbot.llm.chat import answer_question, answer_question_grounded
+from legal_rag_chatbot.rag.query import PROJECT_ID
 
 T = TypeVar("T")
 
+ANSWER_FUNCTIONS: dict[str, Callable[[str], str]] = {
+    "rerank": answer_question,
+    "grounded": answer_question_grounded,
+}
+
 JUDGE_MODEL = "gemini-2.5-pro"
+JUDGE_LOCATION = "europe-west4"  # gemini-2.5-pro is not available in europe-west3
 
 JUDGE_PROMPT = """\
 Du bewertest die Antwort eines juristischen RAG-Assistenten anhand einer Referenzantwort.
@@ -94,9 +100,13 @@ def _with_retry(call: Callable[[], T], attempts: int = 6) -> T:
     raise AssertionError("unreachable")
 
 
-def evaluate_question(client: genai.Client, question: dict[str, Any]) -> dict[str, Any]:
+def evaluate_question(
+    client: genai.Client,
+    question: dict[str, Any],
+    answer_fn: Callable[[str], str] = answer_question,
+) -> dict[str, Any]:
     """Generate an answer for one question and judge it."""
-    answer = _with_retry(lambda: answer_question(question["question"])) or ""
+    answer = _with_retry(lambda: answer_fn(question["question"])) or ""
     judgement = _with_retry(lambda: judge(client, question, answer))
 
     return {
@@ -140,13 +150,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, help="Only evaluate the first N questions")
     parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument("--mode", choices=ANSWER_FUNCTIONS, default="rerank")
     parser.add_argument("--output", type=Path, help="Where to write the JSON report")
     args = parser.parse_args()
+    answer_fn = ANSWER_FUNCTIONS[args.mode]
 
     questions = load_questions()[: args.limit]
-    client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
+    client = genai.Client(vertexai=True, project=PROJECT_ID, location=JUDGE_LOCATION)
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        results = list(pool.map(lambda q: evaluate_question(client, q), questions))
+        results = list(
+            pool.map(lambda q: evaluate_question(client, q, answer_fn), questions)
+        )
 
     answerable = [r for r in results if r["category"] != NO_ANSWER_CATEGORY]
     unanswerable = [r for r in results if r["category"] == NO_ANSWER_CATEGORY]

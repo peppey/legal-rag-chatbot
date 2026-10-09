@@ -1,0 +1,169 @@
+{
+  "summary": {
+    "answerable": {
+      "n": 10,
+      "richtig": 0.9,
+      "teilweise": 0.1,
+      "falsch": 0.0,
+      "hallucination": 0.0,
+      "abstained": 0.0
+    },
+    "unanswerable": null,
+    "by_category": {
+      "berechnung": {
+        "n": 2,
+        "richtig": 1.0,
+        "teilweise": 0.0,
+        "falsch": 0.0,
+        "hallucination": 0.0,
+        "abstained": 0.0
+      },
+      "faktenabfrage": {
+        "n": 1,
+        "richtig": 1.0,
+        "teilweise": 0.0,
+        "falsch": 0.0,
+        "hallucination": 0.0,
+        "abstained": 0.0
+      },
+      "fristen_und_verjaehrung": {
+        "n": 3,
+        "richtig": 1.0,
+        "teilweise": 0.0,
+        "falsch": 0.0,
+        "hallucination": 0.0,
+        "abstained": 0.0
+      },
+      "rechtliche_bewertung": {
+        "n": 4,
+        "richtig": 0.75,
+        "teilweise": 0.25,
+        "falsch": 0.0,
+        "hallucination": 0.0,
+        "abstained": 0.0
+      }
+    }
+  },
+  "results": [
+    {
+      "id": "Q001",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "leicht",
+      "question": "Bis wann muss Frau Keller der Eigenbedarfskündigung des Vermieters Wendt widersprechen, und wann ist die Wiedervorlage dafür eingetragen?",
+      "reference_answer": "Der Widerspruch nach § 574b Abs. 2 BGB muss dem Vermieter bis 31.08.2026 zugehen, Wiedervorlage ist der 14.08.2026. Er wurde bereits am 20.02.2026 erklärt.",
+      "answer": "Auf Grundlage der bereitgestellten Dokumente lässt sich die Frage wie folgt beantworten:\n\n**Tatsachen aus den Akten:**\n*   Die Eigenbedarfskündigung des Vermieters Wendt datiert vom 29.01.2026 und kündigt das Mietverhältnis zum 31.10.2026 (Dokument [2]).\n*   Frau Keller hat das Kündigungsschreiben am 30.01.2026 erhalten (Dokument [1]).\n*   Ein Widerspruch von Frau Keller wurde bereits am 20.02.2026 durch Anwaltsschreiben erklärt (Dokument [4], bestätigt in Dokument [3]).\n\n**Rechtliche Fragestellungen:**\n*   Die Kernfrage betrifft die gesetzlich vorgeschriebene Frist für den Widerspruch gegen eine Eigenbedarfskündigung gemäß §§ 574 ff. BGB und die interne Fristenüberwachung.\n\n**Rechtliche Bewertung:**\n*   Gemäß der internen Notiz zur Erstprüfung (Dokument [1]) muss der Widerspruch nach § 574b Abs. 2 BGB dem Vermieter bis zum **31.08.2026** zugehen. Diese Frist wird auch vom Vermieter in seinem Kündigungsschreiben erwähnt, indem er auf eine Erklärungsfrist von \"spätestens zwei Monate vor Beendigung des Mietverhältnisses\" hinweist (Dokument [2]).\n*   Die Wiedervorlage für diesen Widerspruch war intern auf den **14.08.2026** eingetragen (Dokument [1]).\n*   Der Widerspruch von Frau Keller wurde bereits am 20.02.2026 erklärt und somit fristgerecht vor dem 31.08.2026 eingereicht (Dokument [3], [4]).",
+      "reasoning": "Die Antwort des Systems ist vollständig und korrekt. Sie nennt sowohl die korrekte Frist für den Widerspruch (31.08.2026) als auch das Datum der Wiedervorlage (14.08.2026). Zusätzlich wird korrekt erwähnt, dass der Widerspruch bereits erklärt wurde. Alle Fakten stimmen mit der Referenzantwort überein.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q002",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "question": "Welche Anhaltspunkte sprechen dafür, dass der Vermieter bei der Eigenbedarfskündigung seine Anbietpflicht verletzt hat, und wie hoch schätzt die Kanzlei das Risiko ein?",
+      "reference_answer": "Die Zweizimmerwohnung (ca. 52 m²) im 2. OG rechts stand ab 01.02.2026 leer und wurde erst am 12.02.2026 an Dritte vermietet. Ob sie mit der 74-m²-Wohnung vergleichbar ist, ist zweifelhaft; das Risiko eines Verstoßes wird als mittel eingestuft.",
+      "answer": "Auf Grundlage der bereitgestellten Dokumente lässt sich die Frage wie folgt beantworten:\n\n**Tatsachen aus den Akten:**\n\n*   Die Mandantin, Frau Keller, bewohnt eine 3-Zimmer-Wohnung mit ca. 74 m² (CASE-001-01).\n*   Eine Zweizimmerwohnung im Mehrfamilienhaus des Vermieters war vom 01.02.2026 bis zum 12.02.2026 frei und wurde dann an Dritte vermietet (CASE-001-08).\n\n**Rechtliche Fragestellungen:**\n\n*   Ob eine Anbietpflicht besteht, hängt davon ab, ob die vom 01.02.2026 bis 12.02.2026 freie Zweizimmerwohnung mit der von Frau Keller bewohnten 74m²-Wohnung \"vergleichbar\" war (CASE-001-04, CASE-001-08).\n\n**Rechtliche Bewertung:**\n\n*   Die Kanzlei schätzt ein, dass es \"zweifelhaft\" ist, ob die freie Zweizimmerwohnung mit der 74m²-Wohnung der Mandantin vergleichbar ist (CASE-001-08).\n*   Das Risiko eines Verstoßes gegen die Anbietpflicht wird von der Kanzlei als \"mittel\" eingeschätzt (CASE-001-08).",
+      "reasoning": "Die Antwort des Systems ist vollständig und korrekt. Sie identifiziert die wesentlichen Anhaltspunkte (die freie Zweizimmerwohnung und den Zeitraum des Leerstands) und gibt die Risikoeinschätzung der Kanzlei (Vergleichbarkeit 'zweifelhaft', Risiko 'mittel') exakt wieder. Alle in der Referenzantwort enthaltenen Informationen sind auch in der Antwort des Systems vorhanden.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q003",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "leicht",
+      "question": "Bis wann musste Herr Hartmann seine Kündigungsschutzklage gegen die Rheinblick Logistik AG erheben?",
+      "reference_answer": "Bei Zugang am 14.01.2026 endete die Dreiwochenfrist des § 4 KSchG am 04.02.2026; die Klage wurde am 28.01.2026 eingereicht.",
+      "answer": "Herr Hartmann musste seine Kündigungsschutzklage gegen die Rheinblick Logistik AG bis zum **04.02.2026** erheben.\n\n**Tatsachen aus den Akten:**\n*   Das Kündigungsschreiben der Rheinblick Logistik AG ist vom 12.01.2026 datiert (Dokument [5]).\n*   Laut Angaben des Mandanten Jonas Hartmann erfolgte der Zugang des Kündigungsschreibens (Einwurf in den Briefkasten) am 14.01.2026 (Dokumente [1], [3]).\n*   Die interne Notiz zur Erstprüfung der Klage bestätigt, dass die Klagefrist des § 4 Satz 1 KSchG am 04.02.2026 endete (Dokument [1]).\n*   Die Klageeinreichung beim Arbeitsgericht Hamburg war für den 28.01.2026 eingeplant und erfolgte auch an diesem Tag (Dokumente [1], [2]).\n\n**Rechtliche Fragestellung:**\n*   Gemäß § 4 Satz 1 Kündigungsschutzgesetz (KSchG) muss eine Kündigungsschutzklage innerhalb von drei Wochen nach Zugang der schriftlichen Kündigung beim Arbeitsgericht erhoben werden (Dokument [3]).\n\n**Rechtliche Bewertung:**\n*   Ausgehend vom Zugang der Kündigung am 14.01.2026 beträgt die Klagefrist drei Wochen, was zum 04.02.2026 führte. Die Klage wurde vor diesem Datum, am 28.01.2026, eingereicht und wahrt somit die Frist.",
+      "reasoning": "Die Antwort des Systems ist korrekt. Das Datum, bis zu dem die Kündigungsschutzklage erhoben werden musste (04.02.2026), wird exakt so genannt wie in der Referenzantwort und den zugrundeliegenden Fakten.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q004",
+      "category": "rechtliche_bewertung",
+      "difficulty": "schwer",
+      "question": "Mit welchen Argumenten wird im Kündigungsschutzprozess Hartmann eine Weiterbeschäftigungsmöglichkeit belegt, und wie reagiert die Arbeitgeberin darauf?",
+      "reference_answer": "Der Mandant fand im Karriereportal die Ausschreibung „Teamleiter Netzplanung“ in Duisburg und verweist auf Weiterbeschäftigung im Planungszentrum Duisburg. Die Arbeitgeberin hält dagegen, es sei eine neu geschaffene Position „Teamleiter Netzplanung Zentral“ mit verändertem Anforderungsprofil (SAP TM, Konzernreporting, neun Mitarbeitende), das der Kläger nicht erfülle; das Gericht wird dies prüfen.",
+      "answer": "Auf Grundlage der vorliegenden Dokumente ergeben sich folgende Argumente zur Weiterbeschäftigungsmöglichkeit im Kündigungsschutzprozess von Herrn Hartmann und die Reaktion der Arbeitgeberin:\n\n**Argumente des Klägers Hartmann für eine Weiterbeschäftigungsmöglichkeit:**\n\n1.  **Bestreiten des Wegfalls der Tätigkeit:** Herr Hartmann bestreitet, dass die Tätigkeit \"Teamleitung Netzplanung\" tatsächlich weggefallen ist (Dokument [2]). Dies ist der Kern der Argumentation, da eine betriebsbedingte Kündigung einen dringenden betrieblichen Bedarf voraussetzt, der durch den Wegfall der Stelle begründet sein muss.\n2.  **Bestehen von Weiterbeschäftigungsmöglichkeiten im Unternehmen:** Es wird die Existenz von Weiterbeschäftigungsmöglichkeiten innerhalb der Rheinblick Logistik AG behauptet (Dokument [2]).\n3.  **Spezifische Möglichkeit im Planungszentrum Duisburg:** Insbesondere wird auf eine Weiterbeschäftigungsmöglichkeit im Planungszentrum Duisburg hingewiesen (Dokument [2], [3]). Die Arbeitgeberin hatte dem Mandanten mündlich eine \"Verlagerung der Netzplanung nach Duisburg\" als Kündigungsgrund genannt (Dokument [4]).\n4.  **Ausschreibung der Teamleitung in Duisburg:** Die interne Notiz vom 10.09.2026 bewertet, dass die \"Ausschreibung der Teamleitung am Dienstort Duisburg stützt die Annahme einer Weiterbeschäftigungsmöglichkeit\" für den Mandanten (Dokument [1]). Dies ist eine konkrete Tatsache, die die Argumentation des Klägers untermauert.\n\n**Reaktion der Arbeitgeberin (Rheinblick Logistik AG):**\n\n1.  **Vortrag einer unternehmerischen Entscheidung:** Die Beklagte hat im Prozess \"die unternehmerische Entscheidung vorgetragen\" (Dokument [1]). Dies ist die übliche Darlegung zur Begründung einer betriebsbedingten Kündigung.\n2.  **Mangelnder Nachweis des tatsächlichen Aufgabenwegfalls:** Die Beklagte hat jedoch laut Bewertung des Rechtsanwalts des Klägers \"nicht belegt, dass die Aufgaben des Mandanten tatsächlich weggefallen sind\" (Dokument [1]). Dies deutet auf eine Schwachstelle in der Argumentation der Arbeitgeberin hin.\n3.  **Implizite Argumentation des geänderten Anforderungsprofils:** Es wird die rechtliche Fragestellung aufgeworfen, ob das \"geänderte Anforderungsprofil\" der Stelle in Duisburg den Mandanten ausschließt (Dokument [1]). Dies lässt die Schlussfolgerung zu, dass die Arbeitgeberin möglicherweise argumentiert oder argumentieren wird, dass Herr Hartmann die Anforderungen für die (verlagerte) Position in Duisburg nicht erfüllt, selbst wenn diese existiert.\n4.  **Annahmeverzugsrisiko:** Das hohe Annahmeverzugsrisiko für die Beklagte (24.250,00 EUR brutto bis September 2026, monatlich steigend, Dokument [1]) ist eine faktische Konsequenz der fehlenden oder bestrittenen Weiterbeschäftigung. Dies ist zwar keine direkte juristische Reaktion, aber ein starker wirtschaftlicher Druckpunkt im Prozess, der die Beklagte zu einer Vergleichsbereitschaft motivieren könnte.",
+      "reasoning": "Die Antwort des Systems erfasst die wesentlichen Argumente beider Seiten korrekt: Der Kläger verweist auf die Ausschreibung in Duisburg, die Arbeitgeberin argumentiert mit einem geänderten Anforderungsprofil. Allerdings fehlen in der Antwort wichtige Details aus der Referenz, nämlich die genaue neue Stellenbezeichnung ('Teamleiter Netzplanung Zentral') und die konkreten neuen Anforderungen (SAP TM, Konzernreporting, neun Mitarbeitende). Die Antwort ist daher unvollständig und nur teilweise richtig.",
+      "correctness": "teilweise",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q005",
+      "category": "berechnung",
+      "difficulty": "leicht",
+      "question": "Welche Abfindung wird im Verfahren Hartmann gegen die Rheinblick Logistik AG empfohlen, und wie berechnet sich die Regelabfindung?",
+      "reference_answer": "Regelabfindung 0,5 × 4.850,00 EUR × 7,67 Jahre ≈ 18.600,00 EUR brutto; empfohlen wird eine Einigung bei 18.000 bis 19.000 EUR brutto mit qualifiziertem Zeugnis und Freistellungs-/Urlaubsabgeltungsregelung (Angebot der Beklagten 13.000 EUR, Forderung 21.000 EUR).",
+      "answer": "Hier ist die Beantwortung Ihrer Fragen auf Grundlage der bereitgestellten Dokumentauszüge:\n\n**Tatsachen aus den Akten:**\n\n*   Der Mandant, Jonas Hartmann, ist am 01.09.2018 bei der Rheinblick Logistik AG eingetreten und hat ein Bruttomonatsgehalt von 4.850,00 EUR (Stand 01.01.2024).\n*   Die Kündigung wurde am 12.01.2026 ausgesprochen und erfolgte zum 30.04.2026.\n*   Die Vorsitzende des Gerichts regte im Gütetermin eine Abfindung in Höhe von 0,5 Bruttomonatsgehältern je Beschäftigungsjahr an.\n*   Die Beklagte hat ein Angebot von 13.000,00 EUR brutto zur Beendigung zum 30.04.2026 unterbreitet.\n*   Der Mandant hat eine Gegenforderung von 21.000,00 EUR gestellt.\n\n**Rechtliche Fragestellungen / Bewertung (aus den Dokumenten):**\n\n*   **Empfohlene Abfindung:** Eine Einigung im Bereich von **18.000,00 bis 19.000,00 EUR brutto** wird als Empfehlung genannt, wenn zusätzlich ein qualifiziertes Zeugnis und die Freistellungsregelung mit Urlaubsabgeltung vereinbart werden. (Dokument [1])\n*   **Berechnung der Regelabfindung:** Die Regelabfindung wird auf Basis von **0,5 Bruttomonatsgehältern pro Beschäftigungsjahr** berechnet.\n    *   Bruttomonatsgehalt: 4.850,00 EUR (Dokument [1], [3], [5])\n    *   Beschäftigungsjahre: 7,67 Jahre (Dokument [1]). (Berechnet aus Eintritt 01.09.2018 bis Kündigungsdatum 30.04.2026)\n    *   Formel: 0,5 × 4.850,00 EUR × 7,67 Jahre\n    *   Ergebnis: Die Regelabfindung beläuft sich auf ca. **18.600,00 EUR brutto**. (Dokument [1])\n\n**Hinweis:** Die hier gegebene Antwort basiert ausschließlich auf den bereitgestellten Dokumentauszügen und stellt keine abschließende Rechtsberatung dar.",
+      "reasoning": "Die Antwort des Systems ist vollständig und korrekt. Sie nennt sowohl die empfohlene Abfindungsspanne (18.000 bis 19.000 EUR) als auch die genaue Berechnung der Regelabfindung (0,5 × 4.850,00 EUR × 7,67 Jahre ≈ 18.600,00 EUR). Alle in der Referenzantwort genannten Fakten, einschließlich der Angebote beider Parteien, sind in der Antwort des Systems enthalten.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q006",
+      "category": "fristen_und_verjaehrung",
+      "difficulty": "leicht",
+      "question": "Bis wann musste Herr Brinkmann Klage gegen die Kündigung seines Freelance-Rahmenvertrags erheben, und wann wurde sie eingereicht?",
+      "reference_answer": "Zugang der Kündigung war am 08.01.2026, die Frist des § 4 KSchG lief daher bis 29.01.2026; die Klage ging am 22.01.2026 beim Arbeitsgericht Düsseldorf ein.",
+      "answer": "Basierend auf den vorliegenden Dokumenten ergeben sich folgende Informationen:\n\n**Tatsachen aus den Akten:**\n\n*   Die Kündigung des Rahmenvertrags über freie Mitarbeit vom 08.01.2026 ging Herrn Brinkmann am 08.01.2026 zu ([2], [3]).\n*   Die Klageschrift wurde am 22.01.2026 beim Arbeitsgericht Düsseldorf eingereicht ([1]).\n\n**Rechtliche Fragestellungen:**\n\n*   Herr Brinkmann begehrt die Feststellung eines Arbeitsverhältnisses und Kündigungsschutz ([1], [2]).\n*   Für die Erhebung einer Klage gegen eine Kündigung, wenn ein Arbeitsverhältnis geltend gemacht wird, ist die dreiwöchige Klagefrist gemäß § 4 Kündigungsschutzgesetz (KSchG) maßgeblich ([1], [2], [3]).\n\n**Rechtliche Bewertung:**\n\n*   Ausgehend vom Zugang der Kündigung am 08.01.2026 musste Herr Brinkmann Klage bis zum 29.01.2026 erheben, um die Frist des § 4 KSchG zu wahren ([2], [3]).\n*   Die Klage wurde am 22.01.2026 eingereicht und wahrt damit die genannte Frist ([1]).",
+      "reasoning": "Die Antwort des Systems enthält alle wesentlichen Informationen der Referenzantwort. Sie nennt korrekt die Klagefrist (29.01.2026) und das Datum der Klageeinreichung (22.01.2026). Die zusätzlichen rechtlichen Ausführungen sind ebenfalls korrekt und kontextualisieren die Daten richtig.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q007",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "question": "Welche Indizien sprechen dafür, dass Herr Brinkmann trotz Rahmenvertrag über freie Mitarbeit tatsächlich Arbeitnehmer war?",
+      "reference_answer": "Pflichtteilnahme am Daily (09:30 Uhr), Büropflicht Di–Do, Aufgabenzuteilung durch den Teamleiter, Urlaubsfreigabe über das HR-Tool, Laptop und E-Mail-Adresse der Auftraggeberin, keine Vertretungsmöglichkeit und rund 92 % Umsatzanteil. Dagegen sprechen die vertragliche Freiheit, Umsatzsteuerrechnungen, Gewerbeanmeldung und andere Auftraggeber.",
+      "answer": "Basierend auf den vorliegenden Dokumenten sprechen folgende Indizien dafür, dass Herr Brinkmann trotz des Rahmenvertrags über freie Mitarbeit tatsächlich Arbeitnehmer war:\n\n**Rechtliche Fragestellung:**\n\nMaßgeblich für die Abgrenzung eines Arbeitsverhältnisses von einer selbstständigen Tätigkeit ist die tatsächliche Durchführung des Vertragsverhältnisses, nicht dessen vertragliche Bezeichnung (§ 611a Abs. 1 Satz 5 BGB). Arbeitnehmer ist, wer weisungsgebunden in persönlicher Abhängigkeit und in fremdbestimmter Organisation Dienste leistet (§ 611a BGB) [1].\n\n**Tatsachen aus den Akten (Indizien für ein Arbeitsverhältnis):**\n\n1.  **Weisungsgebundenheit hinsichtlich Zeit, Ort und Arbeitsinhalt:**\n    *   **Teilnahmepflicht am Daily Stand-up:** Herr Brinkmann musste täglich um 09:30 Uhr am \"Daily Stand-up\" teilnehmen, dessen Teilnahme als Pflicht galt [2], [3], [5].\n    *   **Anwesenheitspflicht im Büro:** Er musste Dienstag bis Donnerstag im Büro der Isar Digital AG anwesend sein, obwohl dies nicht im Vertrag stand [2], [3], [5]. Diese Anweisung erfolgte durch den Teamleiter Herr Berger [2].\n    *   **Aufgabenfestlegung und Überprüfung:** Sein Teamleiter, Herr Berger, legte die Aufgaben im \"Sprint\" fest und überprüfte die \"Tickets\" [2], [3], [5].\n    *   **Urlaubsregelung:** Er musste seinen Urlaub im HR-Tool der Isar Digital AG eintragen, und dieser wurde vom Teamleiter freigegeben. Er stand wie die Angestellten im Teamkalender [2], [3], [5].\n\n2.  **Eingliederung in die fremdbestimmte Organisation:**\n    *   **Nutzung interner Ressourcen und Identifikation:** Herr Brinkmann arbeitete mit einem Laptop und einer E-Mail-Adresse der Isar Digital AG, nutzte deren Chat und hatte eine Visitenkarte der Firma [2], [3], [5].\n    *   **Integration in ein Team:** Er war in das Projekt \"Kundenportal\" eingegliedert und in ein Team integriert, wie die täglichen Meetings und die Urlaubsabstimmung im Teamkalender zeigen [2], [3].\n\n3.  **Persönliche Abhängigkeit / Fehlende unternehmerische Freiheit:**\n    *   **Keine Vertretungsmöglichkeit:** Es gab nie eine Vertretung durch Dritte, und Herr Brinkmann hätte auch niemanden stellen dürfen, obwohl der Vertrag diese Möglichkeit theoretisch vorsah (§ 5 des Rahmenvertrags) [2], [5].\n    *   **Geringe Tätigkeit für andere Auftraggeber:** Rund 92 % seines Umsatzes stammten von der Isar Digital AG. Im Jahr 2023 hatte er lediglich zwei kleine Aufträge (ca. 6 Tage) neben der Tätigkeit für Isar Digital [2], [3]. Dies deutet auf eine faktische Ausschließlichkeit der Tätigkeit hin [1].\n    *   **Kaum eigene Unternehmerrisiken:** Der Aktenvermerk [1] nennt \"kaum eigene Unternehmerrisiken\" als Indiz für ein Arbeitsverhältnis, was durch die hohe Abhängigkeit von einem Auftraggeber und die Integration in die Organisation von Herrn Brinkmann unterstützt wird.\n\n**Rechtliche Bewertung (nach den vorliegenden Informationen):**\n\nDie aufgeführten Tatsachenindizien stützen die Annahme, dass die tatsächliche Handhabung der Zusammenarbeit erheblich vom Wortlaut des Rahmenvertrags abwich und die Merkmale eines Arbeitsverhältnisses (Weisungsgebundenheit, persönliche Abhängigkeit, Eingliederung in fremdbestimmte Organisation) erfüllt sein könnten [1], [5]. Die RAin Lenz schätzt die Aussichten auf Feststellung eines Arbeitsverhältnisses als \"überwiegend günstig\" ein [1].\n\n**Hinweis:** Dies stellt keine abschließende Rechtsberatung dar, sondern eine Zusammenfassung der Indizien auf Grundlage der bereitgestellten Dokumente.",
+      "reasoning": "Die Antwort des Systems enthält alle in der Referenzantwort genannten Indizien, die für ein Arbeitsverhältnis sprechen. Sie geht sogar darüber hinaus, indem sie die Indizien korrekt in die juristischen Kategorien der Weisungsgebundenheit, Eingliederung und persönlichen Abhängigkeit einordnet und mit den entsprechenden Paragraphen (§ 611a BGB) verknüpft. Die Darstellung ist somit nicht nur vollständig, sondern auch juristisch gut strukturiert und detaillierter als die Referenz, ohne dabei falsche Informationen zu enthalten.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q008",
+      "category": "faktenabfrage",
+      "difficulty": "leicht",
+      "question": "Welcher Betriebsstundenstand ist im Kaufvertrag über das CNC-Bearbeitungszentrum Brenner BZ 2200 angegeben, und welcher Stand wurde tatsächlich ausgelesen?",
+      "reference_answer": "Im Vertrag stehen 4.212 Betriebsstunden, die Steuerung zeigte am 05.01.2026 einen Gesamtstand von 8.037 Stunden; ein Wartungsbericht vom 14.03.2024 wies bereits 7.412 Stunden aus.",
+      "answer": "**Tatsachen aus den Akten:**\n\n*   Im Kaufvertrag vom 14.11.2025 über das CNC-Bearbeitungszentrum Brenner BZ 2200 ist ein Stand von **4.212 Betriebsstunden** angegeben (§ 1 Kaufvertrag [2], Anwaltsschreiben [1], Mandantenaufnahme [4]).\n*   Tatsächlich wurde bei einem Termin des Herstellerservice am 05.01.2026 von der Steuerung ein Gesamtstand von **8.037 Betriebsstunden** ausgelesen (Mandantenaufnahme [4], Mandanten-E-Mail [3]).\n*   Ein älterer Hersteller-Servicebericht vom 14.03.2024 wies bereits **7.412 Betriebsstunden** aus (Anwaltsschreiben [1], Mandanten-E-Mail [3]).",
+      "reasoning": "Die Antwort des Systems enthält alle wesentlichen Informationen der Referenzantwort. Sie nennt korrekt die im Vertrag angegebenen Betriebsstunden (4.212), den tatsächlich ausgelesenen Stand (8.037) und den Stand aus dem früheren Wartungsbericht (7.412). Die Fakten sind vollständig und korrekt wiedergegeben.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q009",
+      "category": "rechtliche_bewertung",
+      "difficulty": "mittel",
+      "question": "Kann sich der Verkäufer einer gebrauchten Maschine auf den vertraglichen Gewährleistungsausschluss berufen, wenn die im Vertrag genannten Betriebsstunden nicht stimmen?",
+      "reference_answer": "Nach Einschätzung der Kanzlei greift der pauschale Ausschluss nicht, soweit die Betriebsstunden als Beschaffenheit vereinbart wurden (§ 1 Kaufvertrag); bei Arglist ohnehin nicht (§ 444 BGB, § 5 Kaufvertrag nimmt Vorsatz und Arglist aus). Die Gegenseite bestreitet Arglist und verweist auf einen Steuerrechnertausch 2024.",
+      "answer": "Basierend auf den bereitgestellten Dokumenten lässt sich die Frage wie folgt beantworten:\n\n**1. Tatsachen aus den Akten:**\n\n*   Der Kaufvertrag vom 14.11.2025 (§ 1) gibt die Betriebsstunden des gebrauchten CNC-Bearbeitungszentrums mit \"4.212 h\" an (Dokument [2]).\n*   Die tatsächlichen Betriebsstunden der Steuerung betragen 8.037 h; ein Hersteller-Servicebericht vom 14.03.2024 wies bereits 7.412 h aus. Die vertraglich angegebene Stundenzahl ist somit unzutreffend (Dokument [3]).\n*   Der Kaufvertrag enthält in § 5 einen Ausschluss der Haftung für Sachmängel. Dieser Ausschluss gilt jedoch ausdrücklich nicht für \"Vorsatz, Arglist und übernommene Garantien\" (Dokument [2]).\n*   Die Verkäuferin (Isar Maschinenhandel) trägt vor, die Betriebsstundenangabe habe auf dem Zählerstand bei Ankauf beruht. Sie behauptet, der Steuerrechner sei 2024 durch den Vorbesitzer ausgetauscht und der Zähler dabei zurückgesetzt worden. Eine Täuschung sei ihrer Mandantin nicht bekannt und nicht erkennbar gewesen (Dokument [4]).\n\n**2. Rechtliche Fragestellungen:**\n\nDie zentrale rechtliche Fragestellung ist, ob die unzutreffende Angabe der Betriebsstunden trotz des vertraglichen Haftungsausschlusses einen Mangel darstellt, für den der Verkäufer haftet. Dies hängt insbesondere davon ab, ob:\n\n*   die Betriebsstundenangabe als eine vereinbarte Beschaffenheit der Maschine anzusehen ist.\n*   der Haftungsausschluss aufgrund einer arglistigen Täuschung oder einer \"ins Blaue hinein\" gemachten Angabe unwirksam ist.\n\n**3. Rechtliche Bewertung (aus den Akten):**\n\n*   **Bewertung durch RAin Engel (Wolf Möbelmanufaktur):**\n    *   Die Rechtsanwältin des Käufers (RAin Engel) vertritt die Auffassung, dass die Betriebsstundenzahl im Vertrag (§ 1) ausdrücklich angegeben wurde und damit eine \"Beschaffenheitsvereinbarung\" vorliegt (Dokument [1]).\n    *   Nach ihrer Einschätzung greift ein pauschaler Haftungsausschluss nicht, soweit die Beschaffenheit vereinbart wurde. Bei Arglist greift er ohnehin nicht (§ 444 BGB wird hier referenziert) (Dokument [1]).\n    *   Sie hält die Angabe der Betriebsstunden für \"arglistig falsch oder zumindest ins Blaue hinein gemacht\" und ist der Ansicht, dass sich die Verkäuferin auf den Gewährleistungsausschluss in § 5 insoweit nicht berufen kann (Dokument [3]).\n\n*   **Bewertung durch RAin Dr. Berger (Isar Maschinenhandel):**\n    *   Die Rechtsanwältin des Verkäufers (RAin Dr. Berger) weist die Forderungen zurück und vertritt die Ansicht, dass die Haftung für Sachmängel wirksam ausgeschlossen ist (§ 5 Kaufvertrag).\n    *   Sie bestreitet, dass Arglist vorliegt. Ihre Mandantin sei von einem zurückgesetzten Zähler durch den Vorbesitzer nicht bekannt gewesen, und eine Täuschung sei nicht erkennbar gewesen (Dokument [4]).\n\n**Zusammenfassend:**\n\nNach den vorliegenden Dokumenten ist die **rechtliche Bewertung** der Käuferseite, dass sich der Verkäufer **nicht** auf den vertraglichen Gewährleistungsausschluss berufen kann, weil die im Vertrag ausdrücklich genannten Betriebsstunden eine **vereinbarte Beschaffenheit** darstellen und die Abweichung als (potenziell) **arglistig** oder zumindest fahrlässig \"ins Blaue hinein\" gemachte Angabe qualifiziert wird. Der Vertrag selbst nimmt Arglist von der Haftungsbegrenzung aus.\n\nDie Verkäuferseite bestreitet jedoch die Arglist und führt als Entlastung an, dass ihr eine Manipulation des Zählers durch den Vorbesitzer nicht bekannt war. Die entscheidende Frage für die rechtliche Beurteilung ist demnach, ob der Verkäuferin Arglist oder eine grob fahrlässige \"ins Blaue hinein\" gemachte Angabe der Betriebsstunden nachgewiesen werden kann.",
+      "reasoning": "Die Antwort des Systems ist umfassend und korrekt. Sie enthält alle wesentlichen Punkte der Referenzantwort: 1. Die Betriebsstunden könnten eine vereinbarte Beschaffenheit sein, was den Gewährleistungsausschluss unwirksam machen würde. 2. Der Ausschluss greift bei Arglist ohnehin nicht, was vertraglich sogar explizit geregelt ist. 3. Die Gegenseite bestreitet die Arglist und liefert eine alternative Erklärung (Tausch des Steuerrechners). Die Antwort des Systems strukturiert diese Punkte klar und ordnet sie den jeweiligen Parteien und rechtlichen Argumentationslinien zu. Sie geht sogar über die Referenz hinaus, indem sie die Argumente detaillierter darstellt, bleibt aber vollständig im Rahmen der durch die Referenz vorgegebenen Fakten.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    },
+    {
+      "id": "Q010",
+      "category": "berechnung",
+      "difficulty": "leicht",
+      "question": "Wie hoch ist der offene Rechnungsbetrag von Frau Schmidt gegenüber der Mainufer UG insgesamt (brutto)?",
+      "reference_answer": "Die Rechnungen vom 30.09.2025 und 31.10.2025 über je 2.796,50 EUR brutto ergeben zusammen 5.593,00 EUR.",
+      "answer": "Der offene Rechnungsbetrag von Frau Schmidt gegenüber der Mainufer UG beträgt insgesamt 5.593,00 EUR brutto.\n\n**Tatsachen aus den Akten:**\n*   Die Rechnungen vom 30.09.2025 und 31.10.2025 sind fällig und unbezahlt (Dokument [1], [2], [3]).\n*   Jede Rechnung beläuft sich auf 2.796,50 EUR brutto (Dokument [2]).\n*   Die Summe der beiden Rechnungen beträgt 5.593,00 EUR brutto (Dokument [1], [2]).",
+      "reasoning": "Die Antwort des Systems ist korrekt. Sie nennt den korrekten Gesamtbetrag der offenen Rechnungen. Die Referenzantwort ist zwar detaillierter, da sie die einzelnen Rechnungsbeträge auflistet, die wesentliche Information (der Gesamtbetrag) ist in der Antwort des Systems aber enthalten und richtig.",
+      "correctness": "richtig",
+      "hallucination": false,
+      "abstained": false
+    }
+  ]
+}
