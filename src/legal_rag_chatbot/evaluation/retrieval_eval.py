@@ -19,11 +19,18 @@ from legal_rag_chatbot.evaluation.dataset import (
     load_corpus,
     load_questions,
 )
-from legal_rag_chatbot.rag.query import LOCATION, PROJECT_ID, fetch_contexts
+from legal_rag_chatbot.rag.query import LOCATION, PROJECT_ID, Ranker, fetch_contexts
 
-KS = (1, 3, 5, 10)
+ALL_KS = (1, 3, 5, 10, 20)
+DEFAULT_TOP_K = 10
+MAX_ATTEMPTS = 6
 DOC_ID_PATTERN = re.compile(r"^document_id (\S+)", re.MULTILINE)
 CONTENT_PATTERN = re.compile(r"^content (.+)", re.MULTILINE | re.DOTALL)
+
+
+def ks_for(top_k: int) -> tuple[int, ...]:
+    """Cutoffs that fit into the number of retrieved chunks."""
+    return tuple(k for k in ALL_KS if k <= top_k)
 
 
 def _normalize(text: str) -> str:
@@ -59,19 +66,29 @@ def evaluate_question(
     client: agentplatform.Client,
     normalized_corpus: dict[str, str],
     top_k: int,
+    ranker: Ranker | None = None,
+    ranker_model: str | None = None,
 ) -> dict[str, Any]:
     """Retrieve contexts for one question and compute its retrieval metrics."""
-    for attempt in range(4):
+    ks = ks_for(top_k)
+    for attempt in range(MAX_ATTEMPTS):
         try:
-            contexts = fetch_contexts(question["question"], top_k=top_k, client=client)
+            contexts = fetch_contexts(
+                question["question"],
+                top_k=top_k,
+                client=client,
+                ranker=ranker,
+                ranker_model=ranker_model,
+            )
             # Empty responses are sometimes transient; retry before accepting them.
-            if contexts or attempt == 3:
+            if contexts or attempt == MAX_ATTEMPTS - 1:
                 break
             time.sleep(2**attempt)
         except Exception:
-            if attempt == 3:
+            if attempt == MAX_ATTEMPTS - 1:
                 raise
-            time.sleep(2**attempt)
+            # The LLM reranker intermittently times out (503), so back off longer.
+            time.sleep(5 * 2**attempt)
 
     chunk_docs: list[str | None] = []
     stale = 0
@@ -97,7 +114,7 @@ def evaluate_question(
     }
     if relevance:
         result["mrr"] = metrics.reciprocal_rank(ranked, relevance)
-        for k in KS:
+        for k in ks:
             result[f"recall@{k}"] = metrics.recall_at_k(ranked, relevance, k)
             result[f"core_recall@{k}"] = metrics.core_recall_at_k(ranked, relevance, k)
             result[f"precision@{k}"] = metrics.precision_at_k(ranked, relevance, k)
@@ -112,12 +129,12 @@ def _mean(values: list[float]) -> float:
     return sum(values) / len(values) if values else float("nan")
 
 
-def aggregate(results: list[dict[str, Any]]) -> dict[str, float]:
+def aggregate(results: list[dict[str, Any]], ks: tuple[int, ...]) -> dict[str, float]:
     """Average the metrics over all questions that have relevant documents."""
     names = ["mrr"] + [
         f"{m}@{k}"
         for m in ("hit", "recall", "core_recall", "precision", "ndcg")
-        for k in KS
+        for k in ks
     ]
     scored = [r for r in results if "mrr" in r]
     out = {name: _mean([r[name] for r in scored]) for name in names}
@@ -125,17 +142,20 @@ def aggregate(results: list[dict[str, Any]]) -> dict[str, float]:
     return out
 
 
-def print_table(title: str, groups: dict[str, dict[str, float]]) -> None:
+def print_table(
+    title: str, groups: dict[str, dict[str, float]], ks: tuple[int, ...]
+) -> None:
     """Print aggregated metrics as a table, skipping empty groups."""
+    last = max(ks)
     columns = [
         "n",
         "mrr",
         "hit@5",
         "recall@5",
-        "recall@10",
+        f"recall@{last}",
         "precision@5",
         "ndcg@5",
-        "ndcg@10",
+        f"ndcg@{last}",
     ]
     print(f"\n{title}")
     print(f"{'':28}" + "".join(f"{c:>13}" for c in columns))
@@ -148,8 +168,15 @@ def print_table(title: str, groups: dict[str, dict[str, float]]) -> None:
         print(f"{name:28}{cells}")
 
 
-def run(top_k: int, limit: int | None, workers: int) -> dict[str, Any]:
+def run(
+    top_k: int,
+    limit: int | None,
+    workers: int,
+    ranker: Ranker | None = None,
+    ranker_model: str | None = None,
+) -> dict[str, Any]:
     """Evaluate all questions in parallel and return the full report."""
+    ks = ks_for(top_k)
     questions = load_questions()[:limit]
     corpus = load_corpus()
     normalized_corpus = {
@@ -168,7 +195,9 @@ def run(top_k: int, limit: int | None, workers: int) -> dict[str, Any]:
     with ThreadPoolExecutor(max_workers=workers) as pool:
         results = list(
             pool.map(
-                lambda q: evaluate_question(q, client, normalized_corpus, top_k),
+                lambda q: evaluate_question(
+                    q, client, normalized_corpus, top_k, ranker, ranker_model
+                ),
                 questions,
             )
         )
@@ -180,12 +209,20 @@ def run(top_k: int, limit: int | None, workers: int) -> dict[str, Any]:
         by_difficulty[r["difficulty"]].append(r)
 
     summary = {
-        "overall": aggregate(results),
-        "by_category": {k: aggregate(v) for k, v in sorted(by_category.items())},
-        "by_difficulty": {k: aggregate(v) for k, v in sorted(by_difficulty.items())},
+        "overall": aggregate(results, ks),
+        "by_category": {k: aggregate(v, ks) for k, v in sorted(by_category.items())},
+        "by_difficulty": {
+            k: aggregate(v, ks) for k, v in sorted(by_difficulty.items())
+        },
     }
     return {
-        "config": {"top_k": top_k, "ks": KS, "questions": len(questions)},
+        "config": {
+            "top_k": top_k,
+            "ks": ks,
+            "ranker": ranker,
+            "ranker_model": ranker_model,
+            "questions": len(questions),
+        },
         "summary": summary,
         "indexed_corpus_stale_chunks": sum(r["stale_chunks"] for r in results),
         "unmapped_chunks": sum(r["unmapped_chunks"] for r in results),
@@ -196,18 +233,26 @@ def run(top_k: int, limit: int | None, workers: int) -> dict[str, Any]:
 def main() -> None:
     """Run the retrieval evaluation, print the tables and save the JSON report."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--top-k", type=int, default=max(KS), help="Chunks per query")
+    parser.add_argument(
+        "--top-k", type=int, default=DEFAULT_TOP_K, help="Chunks per query"
+    )
+    parser.add_argument("--ranker", choices=["llm", "service"], help="Reranker type")
+    parser.add_argument("--ranker-model", help="Model name of the reranker")
     parser.add_argument("--limit", type=int, help="Only evaluate the first N questions")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--output", type=Path, help="Where to write the JSON report")
     args = parser.parse_args()
 
-    report = run(args.top_k, args.limit, args.workers)
+    if args.ranker and not args.ranker_model:
+        parser.error("--ranker requires --ranker-model")
+
+    report = run(args.top_k, args.limit, args.workers, args.ranker, args.ranker_model)
 
     summary = report["summary"]
-    print_table("Gesamt (ohne nicht_im_korpus)", {"overall": summary["overall"]})
-    print_table("Nach Kategorie", summary["by_category"])
-    print_table("Nach Schwierigkeit", summary["by_difficulty"])
+    ks = tuple(report["config"]["ks"])
+    print_table("Gesamt (ohne nicht_im_korpus)", {"overall": summary["overall"]}, ks)
+    print_table("Nach Kategorie", summary["by_category"], ks)
+    print_table("Nach Schwierigkeit", summary["by_difficulty"], ks)
 
     total_chunks = sum(len(r["retrieved_chunks"]) for r in report["results"])
     if report["indexed_corpus_stale_chunks"]:
