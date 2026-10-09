@@ -19,6 +19,8 @@ def test_main_prints_greeting(capsys: pytest.CaptureFixture[str]) -> None:
         "legal_rag_chatbot.rag.corpus",
         "legal_rag_chatbot.rag.query",
         "legal_rag_chatbot.scripts.upload_dataset",
+        "legal_rag_chatbot.scripts.evaluate_retrieval",
+        "legal_rag_chatbot.scripts.evaluate_answers",
     ],
 )
 def test_module_imports(module: str) -> None:

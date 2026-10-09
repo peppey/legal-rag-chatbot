@@ -1,3 +1,5 @@
+from typing import Any
+
 import agentplatform
 from google.genai import types as genai_types
 
@@ -9,9 +11,13 @@ CORPUS_NAME = (
 )
 
 
-def retrieve_contexts(question: str) -> None:
-    """Retrieve relevant document chunks for a question."""
-    client = agentplatform.Client(
+def fetch_contexts(
+    question: str,
+    top_k: int = 5,
+    client: agentplatform.Client | None = None,
+) -> list[Any]:
+    """Return the top_k retrieved contexts for a question, best first."""
+    client = client or agentplatform.Client(
         project=PROJECT_ID,
         location=LOCATION,
     )
@@ -27,12 +33,19 @@ def retrieve_contexts(question: str) -> None:
         query=agentplatform.types.RagQuery(
             text=question,
             rag_retrieval_config=genai_types.RagRetrievalConfig(
-                top_k=5,
+                top_k=top_k,
             ),
         ),
     )
 
-    for context in response.contexts.contexts:
+    if response.contexts is None:
+        return []
+    return list(response.contexts.contexts)
+
+
+def retrieve_contexts(question: str) -> None:
+    """Retrieve relevant document chunks for a question."""
+    for context in fetch_contexts(question):
         print("=" * 80)
         print(f"Source: {context.source_uri}")
         print(context.text)
