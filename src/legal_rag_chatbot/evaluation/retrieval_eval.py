@@ -20,11 +20,12 @@ from legal_rag_chatbot.evaluation.dataset import (
     load_questions,
 )
 from legal_rag_chatbot.rag.query import (
-    DOC_ID_PATTERN,
     LOCATION,
     PROJECT_ID,
     Ranker,
     fetch_contexts,
+    map_chunk_to_document,
+    normalize,
 )
 
 ALL_KS = (1, 3, 5, 10, 20)
@@ -38,32 +39,12 @@ def ks_for(top_k: int) -> tuple[int, ...]:
     return tuple(k for k in ALL_KS if k <= top_k)
 
 
-def _normalize(text: str) -> str:
-    """Collapse all whitespace runs into single spaces."""
-    return " ".join(text.split())
-
-
-def map_chunk_to_document(
-    chunk_text: str, normalized_corpus: dict[str, str]
-) -> str | None:
-    """Resolve a retrieved chunk to a document_id."""
-    match = DOC_ID_PATTERN.search(chunk_text)
-    if match:
-        return match.group(1)
-    # Follow-up chunks of long documents carry no header; match by content.
-    snippet = _normalize(chunk_text)[:80]
-    for doc_id, content in normalized_corpus.items():
-        if snippet and snippet in content:
-            return doc_id
-    return None
-
-
 def is_stale(chunk_text: str, doc_id: str, normalized_corpus: dict[str, str]) -> bool:
     """True if the indexed chunk text does not occur in the local document."""
     match = CONTENT_PATTERN.search(chunk_text)
     if not match or doc_id not in normalized_corpus:
         return False
-    return _normalize(match.group(1))[:60] not in normalized_corpus[doc_id]
+    return normalize(match.group(1))[:60] not in normalized_corpus[doc_id]
 
 
 def evaluate_question(
@@ -185,7 +166,7 @@ def run(
     questions = load_questions()[:limit]
     corpus = load_corpus()
     normalized_corpus = {
-        doc_id: _normalize(doc["content"]) for doc_id, doc in corpus.items()
+        doc_id: normalize(doc["content"]) for doc_id, doc in corpus.items()
     }
     unknown = {
         d["document_id"]

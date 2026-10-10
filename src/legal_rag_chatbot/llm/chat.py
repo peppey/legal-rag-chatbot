@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from google import genai
 from google.genai import types
 
-from legal_rag_chatbot.rag.query import DOC_ID_PATTERN, fetch_contexts
+from legal_rag_chatbot.rag.query import fetch_contexts, map_chunk_to_document
 
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
@@ -88,17 +88,15 @@ def answer_with_sources(
         contents=f"Dokumentauszüge:\n\n{excerpts}\n\nFrage: {question}",
         config=types.GenerateContentConfig(system_instruction=RERANK_SYSTEM_PROMPT),
     )
-    sources = []
-    for number, c in enumerate(contexts, start=1):
-        match = DOC_ID_PATTERN.search(c.text)
-        sources.append(
-            Source(
-                number=number,
-                document_id=match.group(1) if match else None,
-                source_uri=c.source_uri,
-                text=c.text,
-            )
+    sources = [
+        Source(
+            number=number,
+            document_id=map_chunk_to_document(c.text),
+            source_uri=c.source_uri,
+            text=c.text,
         )
+        for number, c in enumerate(contexts, start=1)
+    ]
     return Answer(text=response.text or "", sources=sources)
 
 

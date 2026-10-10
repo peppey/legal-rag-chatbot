@@ -1,8 +1,11 @@
 import re
+from functools import lru_cache
 from typing import Any, Literal
 
 import agentplatform
 from google.genai import types as genai_types
+
+from legal_rag_chatbot.evaluation.dataset import load_corpus
 
 DOC_ID_PATTERN = re.compile(r"^document_id (\S+)", re.MULTILINE)
 
@@ -68,6 +71,34 @@ def fetch_contexts(
     if response.contexts is None:
         return []
     return list(response.contexts.contexts)
+
+
+def normalize(text: str) -> str:
+    """Collapse all whitespace runs into single spaces."""
+    return " ".join(text.split())
+
+
+@lru_cache(maxsize=1)
+def normalized_corpus() -> dict[str, str]:
+    """Local document contents keyed by document_id, whitespace-normalized."""
+    return {doc_id: normalize(doc["content"]) for doc_id, doc in load_corpus().items()}
+
+
+def map_chunk_to_document(
+    chunk_text: str, corpus: dict[str, str] | None = None
+) -> str | None:
+    """Resolve a retrieved chunk to a document_id (defaults to the local corpus)."""
+    match = DOC_ID_PATTERN.search(chunk_text)
+    if match:
+        return match.group(1)
+    # Follow-up chunks of long documents carry no header; match by content.
+    snippet = normalize(chunk_text)[:80]
+    if not snippet:
+        return None
+    for doc_id, content in (corpus if corpus is not None else normalized_corpus()).items():
+        if snippet in content:
+            return doc_id
+    return None
 
 
 def retrieve_contexts(question: str) -> None:
