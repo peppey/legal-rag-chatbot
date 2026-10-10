@@ -1,7 +1,9 @@
+from dataclasses import dataclass, field
+
 from google import genai
 from google.genai import types
 
-from legal_rag_chatbot.rag.query import fetch_contexts
+from legal_rag_chatbot.rag.query import DOC_ID_PATTERN, fetch_contexts
 
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
@@ -33,15 +35,44 @@ Unterscheide zwischen:
 Gib keine abschließende Rechtsberatung.
 """
 
-RERANK_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
-    "die aus dem\nRAG-Corpus abgerufen werden",
-    "die als\nDokumentauszüge bereitgestellt werden",
+CITATION_INSTRUCTION = """
+Belege jede Tatsachenaussage mit der Nummer des Dokumentauszugs in eckigen
+Klammern, z. B. [1] oder [2][3]. Verwende nur Nummern der bereitgestellten
+Auszüge und zitiere nichts, was dort nicht steht.
+"""
+
+RERANK_SYSTEM_PROMPT = (
+    SYSTEM_PROMPT.replace(
+        "die aus dem\nRAG-Corpus abgerufen werden",
+        "die als\nDokumentauszüge bereitgestellt werden",
+    )
+    + CITATION_INSTRUCTION
 )
 
 
-def answer_question(
+@dataclass
+class Source:
+    """A retrieved excerpt; number matches the [n] markers in the answer."""
+
+    number: int
+    document_id: str | None
+    source_uri: str | None
+    text: str
+
+
+@dataclass
+class Answer:
+    text: str
+    sources: list[Source] = field(default_factory=list)
+
+    def cited_sources(self) -> list[Source]:
+        """Sources actually referenced as [n] in the answer text."""
+        return [s for s in self.sources if f"[{s.number}]" in self.text]
+
+
+def answer_with_sources(
     question: str, retrieve_k: int = RETRIEVE_K, context_k: int = CONTEXT_K
-) -> str:
+) -> Answer:
     """Retrieve and rerank retrieve_k chunks, then answer from the best context_k."""
     contexts = fetch_contexts(
         question,
@@ -57,7 +88,25 @@ def answer_question(
         contents=f"Dokumentauszüge:\n\n{excerpts}\n\nFrage: {question}",
         config=types.GenerateContentConfig(system_instruction=RERANK_SYSTEM_PROMPT),
     )
-    return response.text
+    sources = []
+    for number, c in enumerate(contexts, start=1):
+        match = DOC_ID_PATTERN.search(c.text)
+        sources.append(
+            Source(
+                number=number,
+                document_id=match.group(1) if match else None,
+                source_uri=c.source_uri,
+                text=c.text,
+            )
+        )
+    return Answer(text=response.text or "", sources=sources)
+
+
+def answer_question(
+    question: str, retrieve_k: int = RETRIEVE_K, context_k: int = CONTEXT_K
+) -> str:
+    """Like answer_with_sources, but returns only the answer text with [n] markers."""
+    return answer_with_sources(question, retrieve_k, context_k).text
 
 
 def answer_question_grounded(question: str) -> str:
@@ -97,6 +146,11 @@ def answer_question_grounded(question: str) -> str:
 
 
 if __name__ == "__main__":
-    answer = answer_question("Welche rechtlichen Probleme bestehen im Fall CASE-024?")
+    answer = answer_with_sources(
+        "Welche rechtlichen Probleme bestehen im Fall CASE-024?"
+    )
 
-    print(answer)
+    print(answer.text)
+    print("\nQuellen:")
+    for source in answer.cited_sources():
+        print(f"[{source.number}] {source.document_id or '?'} ({source.source_uri})")

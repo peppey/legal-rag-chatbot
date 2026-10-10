@@ -19,12 +19,17 @@ from legal_rag_chatbot.evaluation.dataset import (
     load_corpus,
     load_questions,
 )
-from legal_rag_chatbot.rag.query import LOCATION, PROJECT_ID, Ranker, fetch_contexts
+from legal_rag_chatbot.rag.query import (
+    DOC_ID_PATTERN,
+    LOCATION,
+    PROJECT_ID,
+    Ranker,
+    fetch_contexts,
+)
 
 ALL_KS = (1, 3, 5, 10, 20)
 DEFAULT_TOP_K = 10
 MAX_ATTEMPTS = 6
-DOC_ID_PATTERN = re.compile(r"^document_id (\S+)", re.MULTILINE)
 CONTENT_PATTERN = re.compile(r"^content (.+)", re.MULTILINE | re.DOTALL)
 
 

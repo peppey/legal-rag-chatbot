@@ -1,7 +1,10 @@
+import re
 from typing import Any, Literal
 
 import agentplatform
 from google.genai import types as genai_types
+
+DOC_ID_PATTERN = re.compile(r"^document_id (\S+)", re.MULTILINE)
 
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
