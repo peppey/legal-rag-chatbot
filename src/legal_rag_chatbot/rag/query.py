@@ -13,7 +13,7 @@ PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 
 CORPUS_NAME = (
-    "projects/legal-rag-chatbot/locations/europe-west3/ragCorpora/4532873024948404224"
+    "projects/187644435346/locations/europe-west3/ragCorpora/4611686018427387904"
 )
 
 Ranker = Literal["llm", "service"]
