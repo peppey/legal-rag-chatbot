@@ -6,9 +6,7 @@ PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 
 CORPUS_DISPLAY_NAME = "legal-counsel-corpus"
-GCS_PATH = (
-    "gs://legal-rag-chatbot-documents/raw/synthetic_legal_counsel_documents_slim.jsonl"
-)
+GCS_PATH = "gs://legal-rag-chatbot-documents/raw/synthetic_legal_counsel_documents_chunks.jsonl"
 
 
 def create_corpus() -> str:
@@ -45,8 +43,9 @@ def create_corpus() -> str:
                 types.RagFileTransformationConfig(
                     rag_file_chunking_config=(
                         types.RagFileChunkingConfig(
-                            chunk_size=512,
-                            chunk_overlap=100,
+                            # Chunks are already cut in the file; this only has to fit one record.
+                            chunk_size=1024,
+                            chunk_overlap=0,
                         )
                     ),
                 )

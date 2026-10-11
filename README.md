@@ -7,13 +7,14 @@ The project is built on Google Cloud: documents are embedded and retrieved with 
 ## How it works
 
 ```
-raw JSONL ──► PDFs ──► OCR (Document AI) ──► JSON per PDF ──► slim embedding file ──► Cloud Storage ──► Vertex AI RAG corpus
+raw JSONL ──► PDFs ──► OCR (Document AI) ──► JSON per PDF ──► structure-aware chunks ──► Cloud Storage ──► Vertex AI RAG corpus
                                                                                                               │
 question ──► retrieve top 20 chunks ──► rerank (semantic ranker) ──► top 5 ──► Gemini ──► answer with [n] citations
 ```
 
-- **Ingestion**: [prepare.py](src/legal_rag_chatbot/ingestion/prepare.py) builds the embedding file. The text of every document comes from its OCR result in `data/preprocessed/`, the other fields (`document_id`, `case_id`, `document_type`, `document_title`, `created_at`) come from the raw JSONL. [upload.py](src/legal_rag_chatbot/ingestion/upload.py) uploads the file to a Cloud Storage bucket.
-- **Corpus**: [corpus.py](src/legal_rag_chatbot/rag/corpus.py) creates a RAG corpus (embedding model `text-embedding-005`, chunks of 512 tokens with an overlap of 100) and imports the file from Cloud Storage.
+- **Ingestion**: [prepare.py](src/legal_rag_chatbot/ingestion/prepare.py) writes the chunk file, one JSONL line per chunk. The text comes from the OCR results in `data/preprocessed/`, the other fields (`document_id`, `case_id`, `document_type`, `document_title`, `created_at`) from the raw JSONL. [upload.py](src/legal_rag_chatbot/ingestion/upload.py) uploads the file to a Cloud Storage bucket.
+- **Chunking**: [chunking.py](src/legal_rag_chatbot/ingestion/chunking.py) cuts the OCR text at the paragraph boundaries reported by Document AI and drops page footers. Every numbered point (`3. ...`) and contract clause (`§ 9 ...`) starts a new chunk, sub-points stay with their point, wrapped lines and paragraphs continued across a page break are joined. Chunks of at most 300 words are packed from these blocks, small ones are merged, longer ones are split at sentence boundaries. Each chunk carries the document metadata and a `section` such as `Punkt 3: Fristen` or `§ 9 Kündigung`, so it can be understood and attributed on its own.
+- **Corpus**: [corpus.py](src/legal_rag_chatbot/rag/corpus.py) creates a RAG corpus (embedding model `text-embedding-005`) and imports the chunk file from Cloud Storage. The Vertex chunk size (1,024 tokens, no overlap) is only a ceiling above the size of one chunk record, the splitting itself happens in `chunking.py`.
 - **Retrieval**: [query.py](src/legal_rag_chatbot/rag/query.py) retrieves chunks, optionally reranks them, and maps each chunk back to its `document_id`.
 - **Answering**: [chat.py](src/legal_rag_chatbot/llm/chat.py) offers two modes:
   - `rerank` (default): retrieve 20 chunks, rerank with `semantic-ranker-512@latest`, pass the best 5 to `gemini-2.5-flash` and require `[n]` citations.
@@ -34,7 +35,7 @@ The corpus is synthetic. Every person, company and case is fictional.
 | `data/raw/synthetic_legal_counsel_documents.jsonl` | The original documents with metadata (source of truth, the only copy of this file) |
 | `data/raw/pdf/` | PDF renderings of the documents (generated, git-ignored) |
 | `data/preprocessed/` | OCR results of the PDFs, one JSON file per document (generated) |
-| `data/chunks/synthetic_legal_counsel_documents_slim.jsonl` | Derived file that is uploaded and embedded |
+| `data/chunks/synthetic_legal_counsel_documents_chunks.jsonl` | Derived chunk file that is uploaded and embedded |
 | `data/evaluation/retrieval_eval.json` | Evaluation questions with graded relevance labels and reference answers |
 | `data/evaluation/results/` | JSON reports of past evaluation runs |
 
@@ -67,7 +68,7 @@ uv run python -m legal_rag_chatbot.scripts.export_pdfs
 # 2. OCR the PDFs with Document AI (data/preprocessed), see below for the one-time setup
 uv run python -m legal_rag_chatbot.scripts.run_ocr
 
-# 3. Write the slim embedding file from the OCR text and upload it to Cloud Storage
+# 3. Chunk the OCR text and upload the chunk file to Cloud Storage
 uv run python -m legal_rag_chatbot.scripts.upload_dataset
 
 # 4. Create a RAG corpus and import the file, then copy the printed corpus name into CORPUS_NAME
@@ -103,7 +104,7 @@ for source in answer.cited_sources():
 gcloud services enable documentai.googleapis.com
 ```
 
-The first OCR run creates an `OCR_PROCESSOR` named `legal-rag-ocr` in the `eu` region. Existing results are skipped, use `--force` to redo them and `--limit N` for a trial run. Each JSON file contains `document_id`, the full `text`, the text and confidence per page, and OCR metadata. Online processing accepts up to 15 pages per PDF.
+The first OCR run creates an `OCR_PROCESSOR` named `legal-rag-ocr` in the `eu` region. Existing results are skipped, use `--force` to redo them and `--limit N` for a trial run. Each JSON file contains `document_id`, the full `text`, `paragraph_starts` (offsets of the paragraph boundaries in `text`), the text and confidence per page, and OCR metadata. Online processing accepts up to 15 pages per PDF.
 
 The RAG corpus is built from the OCR text, so the retrieval and answer evaluations score what the system reads after OCR. The raw JSONL only supplies the metadata. Rerun the upload and the corpus import whenever PDFs or OCR results change.
 

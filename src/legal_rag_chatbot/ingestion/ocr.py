@@ -84,6 +84,17 @@ def to_record(
     pdf_name: str, processor_name: str, document: documentai.Document
 ) -> dict:
     """Convert a Document AI result into the JSON record stored per PDF."""
+    leading = len(document.text) - len(document.text.lstrip())
+    # Paragraph boundaries as offsets into the stripped text. The per-page paragraph lists of
+    # Document AI can overlap and repeat text, the plain text is the reliable source.
+    paragraph_starts = sorted(
+        {
+            max(int(segments[0].start_index) - leading, 0)
+            for page in document.pages
+            for paragraph in page.paragraphs
+            if (segments := paragraph.layout.text_anchor.text_segments)
+        }
+    )
     pages = [
         {
             "page_number": page.page_number,
@@ -96,6 +107,7 @@ def to_record(
         "document_id": Path(pdf_name).stem,
         "source_pdf": pdf_name,
         "text": document.text.strip(),
+        "paragraph_starts": paragraph_starts,
         "pages": pages,
         "ocr": {
             "engine": "google-cloud-document-ai",
