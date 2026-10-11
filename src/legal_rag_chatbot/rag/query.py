@@ -95,7 +95,9 @@ def map_chunk_to_document(
     snippet = normalize(chunk_text)[:80]
     if not snippet:
         return None
-    for doc_id, content in (corpus if corpus is not None else normalized_corpus()).items():
+    for doc_id, content in (
+        corpus if corpus is not None else normalized_corpus()
+    ).items():
         if snippet in content:
             return doc_id
     return None
