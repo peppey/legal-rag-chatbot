@@ -1,0 +1,19 @@
+{
+  "document_id": "CASE-001-05",
+  "source_pdf": "CASE-001-05.pdf",
+  "text": "E-MAIL DER MANDANTIN\nCASE-001 | Keller an RAin Dr. Hollmann | 16.02.2026\nBetreff: Wohnung im 2. OG und Attest – Az. CASE-001\nSehr geehrte Frau Dr. Hollmann,\nich habe Ihnen die gewünschten Unterlagen zusammengestellt. Das Attest von meinem Hausarzt Dr.\nBrehm hängt an: Danach leide ich an einer Herzinsuffizienz, und ein erzwungener Umzug in meinem\nAlter würde mit hoher Wahrscheinlichkeit zu einer erheblichen Verschlechterung führen.\nEs gibt außerdem etwas Neues: Frau Albrecht aus dem 2. OG hat mir erzählt, dass die Wohnung\nrechts neben ihr (zwei Zimmer, etwa 52 m²) seit dem 01.02. leer steht. Die Vormieter sind ausgezogen,\nund es waren schon Handwerker da. Herr Wendt hat mir davon nichts gesagt.\nHerrn Wendts Sohn habe ich in den fünfzehn Jahren nie im Haus gesehen. Herr Wendt sagte bei der\nletzten Mieterhöhung 2024, er wolle das Haus „langfristig halten\".\nMit freundlichen Grüßen\nClara Keller\nCASE-001-05\nSeite 1",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": "E-MAIL DER MANDANTIN\nCASE-001 | Keller an RAin Dr. Hollmann | 16.02.2026\nBetreff: Wohnung im 2. OG und Attest – Az. CASE-001\nSehr geehrte Frau Dr. Hollmann,\nich habe Ihnen die gewünschten Unterlagen zusammengestellt. Das Attest von meinem Hausarzt Dr.\nBrehm hängt an: Danach leide ich an einer Herzinsuffizienz, und ein erzwungener Umzug in meinem\nAlter würde mit hoher Wahrscheinlichkeit zu einer erheblichen Verschlechterung führen.\nEs gibt außerdem etwas Neues: Frau Albrecht aus dem 2. OG hat mir erzählt, dass die Wohnung\nrechts neben ihr (zwei Zimmer, etwa 52 m²) seit dem 01.02. leer steht. Die Vormieter sind ausgezogen,\nund es waren schon Handwerker da. Herr Wendt hat mir davon nichts gesagt.\nHerrn Wendts Sohn habe ich in den fünfzehn Jahren nie im Haus gesehen. Herr Wendt sagte bei der\nletzten Mieterhöhung 2024, er wolle das Haus „langfristig halten\".\nMit freundlichen Grüßen\nClara Keller\nCASE-001-05\nSeite 1",
+      "confidence": 0.9789
+    }
+  ],
+  "ocr": {
+    "engine": "google-cloud-document-ai",
+    "processor": "projects/187644435346/locations/eu/processors/64ba8b70550dd8fd",
+    "language_hints": [
+      "de"
+    ]
+  }
+}

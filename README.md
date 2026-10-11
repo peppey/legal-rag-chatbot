@@ -36,6 +36,7 @@ The corpus is synthetic. Every person, company and case is fictional.
 | `data/evaluation/retrieval_eval.json` | Evaluation questions with graded relevance labels and reference answers |
 | `data/evaluation/results/` | JSON reports of past evaluation runs |
 | `data/raw/pdf/` | PDF renderings of the documents (generated, git-ignored) |
+| `data/preprocessed/` | OCR results of the PDFs, one JSON file per document (generated) |
 
 ## Setup
 
@@ -95,6 +96,15 @@ uv run python -m legal_rag_chatbot.scripts.export_pdfs
 ```
 
 The PDFs are not part of the RAG pipeline yet, which reads the JSONL file.
+
+Run OCR on the PDFs with Google Cloud Document AI (Enterprise Document OCR, German language hint) and write one JSON file per PDF to `data/preprocessed/`:
+
+```bash
+gcloud services enable documentai.googleapis.com   # once per project
+uv run python -m legal_rag_chatbot.scripts.run_ocr
+```
+
+The first run creates an `OCR_PROCESSOR` named `legal-rag-ocr` in the `eu` region. Existing results are skipped, use `--force` to redo them and `--limit N` for a trial run. Each JSON file contains `document_id`, the full `text`, the text and confidence per page, and OCR metadata. Online processing accepts up to 15 pages per PDF. The OCR output is not yet fed into the RAG pipeline either, which still reads the JSONL file.
 
 ## Evaluation
 

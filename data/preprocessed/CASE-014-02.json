@@ -1,0 +1,19 @@
+{
+  "document_id": "CASE-014-02",
+  "source_pdf": "CASE-014-02.pdf",
+  "text": "TESTAMENT (Kopie des Originals beim Nachlassgericht)\nCASE-014 | Gerhard Winter | 03.03.2022\nMein letzter Wille\nIch, Gerhard Winter, geboren am 14.02.1948, wohnhaft in Stuttgart-Degerloch, setze hiermit meine\nLebensgefährtin Gisela Hartl zu meiner alleinigen Erbin ein. Frau Hartl hat sich seit 2020 um mich\ngekümmert, als ich nach dem Schlaganfall Hilfe brauchte.\nMeine Tochter Elena soll nichts erhalten. Wir haben seit Jahren keinen Kontakt, und sie hat sich\nwährend der Krankheit meiner Frau nicht gekümmert.\nAlle früheren Verfügungen widerrufe ich.\nStuttgart, den 3. März 2022\nGerhard Winter\nVermerk des Nachlassgerichts: Handschriftlich, eigenhändig unterschrieben, Eröffnung am\n09.12.2025.\nCASE-014-02\nSeite 1",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": "TESTAMENT (Kopie des Originals beim Nachlassgericht)\nCASE-014 | Gerhard Winter | 03.03.2022\nMein letzter Wille\nIch, Gerhard Winter, geboren am 14.02.1948, wohnhaft in Stuttgart-Degerloch, setze hiermit meine\nLebensgefährtin Gisela Hartl zu meiner alleinigen Erbin ein. Frau Hartl hat sich seit 2020 um mich\ngekümmert, als ich nach dem Schlaganfall Hilfe brauchte.\nMeine Tochter Elena soll nichts erhalten. Wir haben seit Jahren keinen Kontakt, und sie hat sich\nwährend der Krankheit meiner Frau nicht gekümmert.\nAlle früheren Verfügungen widerrufe ich.\nStuttgart, den 3. März 2022\nGerhard Winter\nVermerk des Nachlassgerichts: Handschriftlich, eigenhändig unterschrieben, Eröffnung am\n09.12.2025.\nCASE-014-02\nSeite 1",
+      "confidence": 0.9826
+    }
+  ],
+  "ocr": {
+    "engine": "google-cloud-document-ai",
+    "processor": "projects/187644435346/locations/eu/processors/64ba8b70550dd8fd",
+    "language_hints": [
+      "de"
+    ]
+  }
+}

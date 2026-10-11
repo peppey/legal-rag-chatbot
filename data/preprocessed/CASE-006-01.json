@@ -1,0 +1,19 @@
+{
+  "document_id": "CASE-006-01",
+  "source_pdf": "CASE-006-01.pdf",
+  "text": "MANDANTENAUFNAHME\nCASE-006 | Bauer ./. Westend GmbH - Widerruf und Rückzahlung Online-Kauf\nErstgespräch am 12.05.2026, Büro Stuttgart, RA Felix Brandl.\nMandant: Paul Bauer, 36, Softwareentwickler, Stuttgart-Vaihingen, Verbraucher. Gegnerin: Westend\nGmbH, Online-Händlerin für Fahrräder und Sportartikel, Ludwigsburg.\nSachverhalt: Am 10.03.2026 bestellte Herr Bauer im Online-Shop der Westend GmbH ein\nE-Mountainbike „TrailPro 7\" für 2.625,00 EUR (inklusive Versand). Lieferung per Spedition am\n18.03.2026. Am 29.03.2026 widerrief er per E-Mail und sandte das Rad am 02.04.2026 auf eigene\nKosten (79,90 EUR) zurück; Eingang bei der Händlerin am 08.04.2026. Erstattet wurden am 05.05.2026\nnur 1.707,50 EUR. Die Händlerin behielt 917,50 EUR als „Wertersatz\" ein, weil das Rad 212 km\ngelaufen sei und Gebrauchsspuren aufweise.\nAngaben des Mandanten: Er habe das Rad „zur Probe\" gefahren, darunter eine Tagestour von ca. 90\nkm am 22.03.2026. Kratzer am Oberrohr seien beim Transport entstanden. Rechtsschutzversicherung\nbesteht; Deckungsanfrage veranlasst.\nZiel: Rückzahlung des einbehaltenen Betrags. Mitgebracht: Bestellbestätigung, Widerrufs-E-Mail,\nSpeditionsbeleg, Schreiben der Händlerin vom 05.05.2026.\nCASE-006-01\nSeite 1",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": "MANDANTENAUFNAHME\nCASE-006 | Bauer ./. Westend GmbH - Widerruf und Rückzahlung Online-Kauf\nErstgespräch am 12.05.2026, Büro Stuttgart, RA Felix Brandl.\nMandant: Paul Bauer, 36, Softwareentwickler, Stuttgart-Vaihingen, Verbraucher. Gegnerin: Westend\nGmbH, Online-Händlerin für Fahrräder und Sportartikel, Ludwigsburg.\nSachverhalt: Am 10.03.2026 bestellte Herr Bauer im Online-Shop der Westend GmbH ein\nE-Mountainbike „TrailPro 7\" für 2.625,00 EUR (inklusive Versand). Lieferung per Spedition am\n18.03.2026. Am 29.03.2026 widerrief er per E-Mail und sandte das Rad am 02.04.2026 auf eigene\nKosten (79,90 EUR) zurück; Eingang bei der Händlerin am 08.04.2026. Erstattet wurden am 05.05.2026\nnur 1.707,50 EUR. Die Händlerin behielt 917,50 EUR als „Wertersatz\" ein, weil das Rad 212 km\ngelaufen sei und Gebrauchsspuren aufweise.\nAngaben des Mandanten: Er habe das Rad „zur Probe\" gefahren, darunter eine Tagestour von ca. 90\nkm am 22.03.2026. Kratzer am Oberrohr seien beim Transport entstanden. Rechtsschutzversicherung\nbesteht; Deckungsanfrage veranlasst.\nZiel: Rückzahlung des einbehaltenen Betrags. Mitgebracht: Bestellbestätigung, Widerrufs-E-Mail,\nSpeditionsbeleg, Schreiben der Händlerin vom 05.05.2026.\nCASE-006-01\nSeite 1",
+      "confidence": 0.9776
+    }
+  ],
+  "ocr": {
+    "engine": "google-cloud-document-ai",
+    "processor": "projects/187644435346/locations/eu/processors/64ba8b70550dd8fd",
+    "language_hints": [
+      "de"
+    ]
+  }
+}
