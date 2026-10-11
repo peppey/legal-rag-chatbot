@@ -4,9 +4,8 @@ from legal_rag_chatbot.ingestion.prepare import build_embedding_file
 from legal_rag_chatbot.ingestion.upload import upload_file
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DATASET_PATH = (
-    PROJECT_ROOT / "data" / "processed" / "synthetic_legal_counsel_documents.jsonl"
-)
+DATASET_PATH = PROJECT_ROOT / "data" / "raw" / "synthetic_legal_counsel_documents.jsonl"
+OCR_DIR = PROJECT_ROOT / "data" / "preprocessed"
 EMBEDDING_PATH = (
     PROJECT_ROOT / "data" / "chunks" / "synthetic_legal_counsel_documents_slim.jsonl"
 )
@@ -17,8 +16,8 @@ DESTINATION_PATH = "raw/synthetic_legal_counsel_documents_slim.jsonl"
 
 
 def main() -> None:
-    """Build the slim embedding dataset and upload it to Google Cloud Storage."""
-    count = build_embedding_file(DATASET_PATH, EMBEDDING_PATH)
+    """Build the slim embedding dataset from the OCR results and upload it to Google Cloud Storage."""
+    count = build_embedding_file(DATASET_PATH, OCR_DIR, EMBEDDING_PATH)
     print(f"Wrote {count} documents to {EMBEDDING_PATH}")
 
     upload_file(

@@ -4,7 +4,7 @@
     "version": "1.0",
     "language": "de",
     "created_at": "2026-10-07",
-    "corpus_file": "data/processed/synthetic_legal_counsel_documents.jsonl",
+    "corpus_file": "data/raw/synthetic_legal_counsel_documents.jsonl",
     "description": "Evaluationsfragen für das Retrieval des Rechercheassistenten. Jede Frage verweist über document_id auf die Dokumente im Korpus, die zur Beantwortung nötig oder hilfreich sind, inklusive abgestufter Relevanz.",
     "notes": [
       "document_id entspricht dem gleichnamigen Feld im Korpus. Nicht gelistete Dokumente gelten als nicht relevant (Relevanz 0).",
