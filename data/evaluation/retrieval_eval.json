@@ -71,6 +71,7 @@
       "difficulty": "leicht",
       "relevant_documents": [
         {"document_id": "CASE-002-04", "relevance": 3},
+        {"document_id": "CASE-002-07", "relevance": 3},
         {"document_id": "CASE-002-01", "relevance": 2},
         {"document_id": "CASE-002-05", "relevance": 2},
         {"document_id": "CASE-002-03", "relevance": 1},
@@ -100,6 +101,7 @@
       "difficulty": "leicht",
       "relevant_documents": [
         {"document_id": "CASE-002-08", "relevance": 3},
+        {"document_id": "CASE-002-05", "relevance": 2},
         {"document_id": "CASE-002-02", "relevance": 1},
         {"document_id": "CASE-002-01", "relevance": 1}
       ],
@@ -113,6 +115,7 @@
       "relevant_documents": [
         {"document_id": "CASE-023-05", "relevance": 3},
         {"document_id": "CASE-023-01", "relevance": 3},
+        {"document_id": "CASE-023-07", "relevance": 3},
         {"document_id": "CASE-023-06", "relevance": 2},
         {"document_id": "CASE-023-03", "relevance": 1},
         {"document_id": "KANZLEI-01", "relevance": 1}
@@ -157,6 +160,7 @@
       "relevant_documents": [
         {"document_id": "CASE-003-06", "relevance": 3},
         {"document_id": "CASE-003-02", "relevance": 3},
+        {"document_id": "CASE-003-01", "relevance": 3},
         {"document_id": "CASE-003-04", "relevance": 2},
         {"document_id": "CASE-003-05", "relevance": 2}
       ],
@@ -171,6 +175,7 @@
         {"document_id": "CASE-004-04", "relevance": 3},
         {"document_id": "CASE-004-06", "relevance": 3},
         {"document_id": "CASE-004-01", "relevance": 2},
+        {"document_id": "CASE-004-03", "relevance": 2},
         {"document_id": "CASE-004-02", "relevance": 1}
       ],
       "reference_answer": "Die Rechnungen vom 30.09.2025 und 31.10.2025 über je 2.796,50 EUR brutto ergeben zusammen 5.593,00 EUR."
@@ -183,6 +188,7 @@
       "relevant_documents": [
         {"document_id": "CASE-004-02", "relevance": 3},
         {"document_id": "CASE-004-05", "relevance": 3},
+        {"document_id": "CASE-004-06", "relevance": 3},
         {"document_id": "CASE-004-04", "relevance": 2},
         {"document_id": "CASE-004-01", "relevance": 2},
         {"document_id": "CASE-004-03", "relevance": 1}
@@ -197,7 +203,9 @@
       "relevant_documents": [
         {"document_id": "CASE-004-02", "relevance": 3},
         {"document_id": "CASE-004-06", "relevance": 3},
-        {"document_id": "CASE-004-05", "relevance": 2}
+        {"document_id": "CASE-004-04", "relevance": 3},
+        {"document_id": "CASE-004-05", "relevance": 2},
+        {"document_id": "CASE-004-03", "relevance": 2}
       ],
       "reference_answer": "Nach § 6 haftet die Auftragnehmerin bei einfacher Fahrlässigkeit nur für wesentliche Vertragspflichten und höchstens in Höhe der Vergütung der letzten drei Monate (7.050,00 EUR netto). Bei einer Abweichung von der Freigabe wäre die Begrenzung fraglich; die Gegenseite beruft sich darauf, dass die Freigabepflicht verletzt wurde."
     },
@@ -208,9 +216,11 @@
       "difficulty": "leicht",
       "relevant_documents": [
         {"document_id": "CASE-005-02", "relevance": 3},
+        {"document_id": "CASE-005-01", "relevance": 3},
         {"document_id": "CASE-005-05", "relevance": 2},
         {"document_id": "CASE-005-07", "relevance": 2},
-        {"document_id": "CASE-005-04", "relevance": 2}
+        {"document_id": "CASE-005-04", "relevance": 2},
+        {"document_id": "CASE-005-06", "relevance": 2}
       ],
       "reference_answer": "§ 7: Eine Minderung ist dem Vermieter einen Monat vor Fälligkeit schriftlich anzukündigen; Aufrechnung und Zurückbehaltung sind nur mit unbestrittenen oder rechtskräftig festgestellten Forderungen zulässig. Die Kanzlei hält die Klausel für AGB-rechtlich angreifbar (§ 307 BGB)."
     },
@@ -237,6 +247,7 @@
         {"document_id": "CASE-005-06", "relevance": 3},
         {"document_id": "CASE-005-05", "relevance": 2},
         {"document_id": "CASE-005-02", "relevance": 2},
+        {"document_id": "CASE-005-04", "relevance": 2},
         {"document_id": "CASE-005-03", "relevance": 1}
       ],
       "reference_answer": "Anspruch aus § 536a Abs. 1 Alt. 2 BGB (Verzug mit der Mängelbeseitigung) für die Zeit nach Fristablauf am 19.12.2025; Umsatzausfall laut Absageliste 3.100,00 EUR. Die Gegenseite verweist auf den Ausschluss der verschuldensunabhängigen Haftung in § 9 und fehlendes Verschulden."
@@ -248,6 +259,7 @@
       "difficulty": "mittel",
       "relevant_documents": [
         {"document_id": "CASE-022-05", "relevance": 3},
+        {"document_id": "CASE-022-01", "relevance": 3},
         {"document_id": "CASE-022-02", "relevance": 2},
         {"document_id": "CASE-022-06", "relevance": 2},
         {"document_id": "CASE-022-03", "relevance": 1}
@@ -290,6 +302,7 @@
         {"document_id": "CASE-006-04", "relevance": 2},
         {"document_id": "CASE-006-05", "relevance": 2},
         {"document_id": "CASE-006-02", "relevance": 2},
+        {"document_id": "CASE-006-03", "relevance": 2},
         {"document_id": "CASE-006-01", "relevance": 1}
       ],
       "reference_answer": "Wertersatz ist dem Grunde nach wahrscheinlich berechtigt, weil 212 km einschließlich einer 90-km-Tour über die Prüfung der Funktionsweise hinausgehen (§ 357a Abs. 1 BGB). Maßgeblich ist der objektive Wertverlust, grob 15–25 % (ca. 390 bis 655 EUR); Gegenvorschlag 600 EUR, Annahme ab 450 EUR."
@@ -315,9 +328,11 @@
       "relevant_documents": [
         {"document_id": "CASE-007-04", "relevance": 3},
         {"document_id": "CASE-007-06", "relevance": 3},
+        {"document_id": "CASE-007-01", "relevance": 3},
         {"document_id": "CASE-007-02", "relevance": 2},
         {"document_id": "CASE-007-05", "relevance": 2},
-        {"document_id": "CASE-007-07", "relevance": 2}
+        {"document_id": "CASE-007-07", "relevance": 2},
+        {"document_id": "CASE-007-03", "relevance": 2}
       ],
       "reference_answer": "Offen und streitig: § 3 des Werkvertrags verlangt schriftliche Beauftragung von Zusatzleistungen, Herr Koller ist laut § 7 nur für tägliche Abstimmungen zuständig. Die mündliche Beauftragung am 22.09.2025 und seine Vollmacht sind nicht belegt; der Nachtrag bleibt streitig."
     },
@@ -328,6 +343,8 @@
       "difficulty": "leicht",
       "relevant_documents": [
         {"document_id": "CASE-008-02", "relevance": 3},
+        {"document_id": "CASE-008-06", "relevance": 3},
+        {"document_id": "CASE-008-07", "relevance": 3},
         {"document_id": "CASE-008-01", "relevance": 2},
         {"document_id": "CASE-008-03", "relevance": 1}
       ],
@@ -356,6 +373,7 @@
         {"document_id": "CASE-008-05", "relevance": 3},
         {"document_id": "CASE-008-06", "relevance": 3},
         {"document_id": "CASE-008-07", "relevance": 2},
+        {"document_id": "CASE-008-01", "relevance": 2},
         {"document_id": "CASE-008-03", "relevance": 1}
       ],
       "reference_answer": "Nur für die zwei freien Mitarbeiter (2 × 1.450,00 = 2.900,00 EUR netto). Altkonten ausgeschiedener Mitarbeitender und die Praktikantin auf einem freigewordenen Platz sind nach § 2 zulässig und nicht mehr streitig."
@@ -368,8 +386,10 @@
       "relevant_documents": [
         {"document_id": "CASE-009-04", "relevance": 3},
         {"document_id": "CASE-009-05", "relevance": 3},
+        {"document_id": "CASE-009-07", "relevance": 3},
         {"document_id": "CASE-009-03", "relevance": 2},
         {"document_id": "CASE-009-02", "relevance": 2},
+        {"document_id": "CASE-009-06", "relevance": 2},
         {"document_id": "CASE-009-01", "relevance": 1}
       ],
       "reference_answer": "Das Stimmverbot besteht nur, wenn der wichtige Grund tatsächlich vorliegt. Fehlt er, zählt Frau Kochs Stimme mit, und es haben nur 70 % statt der nach § 12 Abs. 2 Gesellschaftsvertrag erforderlichen 75 % zugestimmt."
@@ -381,8 +401,11 @@
       "difficulty": "mittel",
       "relevant_documents": [
         {"document_id": "CASE-009-02", "relevance": 3},
+        {"document_id": "CASE-009-07", "relevance": 3},
         {"document_id": "CASE-009-04", "relevance": 2},
         {"document_id": "CASE-009-05", "relevance": 2},
+        {"document_id": "CASE-009-03", "relevance": 2},
+        {"document_id": "CASE-009-06", "relevance": 2},
         {"document_id": "CASE-009-01", "relevance": 1}
       ],
       "reference_answer": "§ 12 Abs. 3: anteiliger Buchwert ohne stille Reserven und Firmenwert, zahlbar in fünf gleichen unverzinslichen Jahresraten. Hier 38.700,00 EUR bei einem geschätzten Anteilswert von mindestens 240.000,00 EUR, also grobes Missverhältnis; zudem ist § 34 Abs. 3 GmbHG (Zahlung aus freiem Vermögen) zu beachten."
@@ -460,7 +483,8 @@
       "difficulty": "leicht",
       "relevant_documents": [
         {"document_id": "CASE-012-02", "relevance": 3},
-        {"document_id": "CASE-012-01", "relevance": 2}
+        {"document_id": "CASE-012-01", "relevance": 2},
+        {"document_id": "CASE-012-04", "relevance": 2}
       ],
       "reference_answer": "1.725,00 EUR monatlich bei Berufsunfähigkeit von mindestens 50 % mit Beitragsbefreiung; Monatsbeitrag 118,00 EUR, Versicherungsbeginn 01.09.2021."
     },
@@ -472,6 +496,7 @@
       "relevant_documents": [
         {"document_id": "CASE-012-07", "relevance": 3},
         {"document_id": "CASE-012-05", "relevance": 3},
+        {"document_id": "CASE-012-01", "relevance": 3},
         {"document_id": "CASE-012-04", "relevance": 2},
         {"document_id": "CASE-012-06", "relevance": 2},
         {"document_id": "CASE-012-02", "relevance": 2},
@@ -487,6 +512,7 @@
       "relevant_documents": [
         {"document_id": "KANZLEI-04", "relevance": 3},
         {"document_id": "CASE-012-07", "relevance": 3},
+        {"document_id": "CASE-012-01", "relevance": 2},
         {"document_id": "CASE-012-02", "relevance": 1}
       ],
       "reference_answer": "Wiederkehrende Leistungen werden mit dem 3,5-fachen Jahresbetrag bewertet (§ 9 ZPO): 3,5 × 12 × 1.725,00 EUR = 72.450,00 EUR zuzüglich Rückstand."
@@ -500,6 +526,7 @@
         {"document_id": "CASE-013-04", "relevance": 3},
         {"document_id": "CASE-013-07", "relevance": 3},
         {"document_id": "CASE-013-05", "relevance": 2},
+        {"document_id": "CASE-013-03", "relevance": 2},
         {"document_id": "CASE-013-01", "relevance": 1},
         {"document_id": "CASE-013-02", "relevance": 1}
       ],
@@ -513,6 +540,7 @@
       "relevant_documents": [
         {"document_id": "CASE-013-07", "relevance": 3},
         {"document_id": "CASE-013-06", "relevance": 3},
+        {"document_id": "CASE-013-03", "relevance": 2},
         {"document_id": "CASE-013-04", "relevance": 1}
       ],
       "reference_answer": "Die Gegenseite sieht die Abfindung als Einkommen bzw. einzusetzendes Vermögen und verlangt Auskunft (§ 1605 BGB). Intern: 11.900 EUR netto im Juli 2025, verteilt auf zwölf Monate rund 990 EUR; damit lag das Einkommen im ALG-Bezug bei ca. 2.770 EUR, eine Herabsetzung für Oktober 2025 bis Januar 2026 ist kaum durchsetzbar."
@@ -538,6 +566,7 @@
         {"document_id": "CASE-014-04", "relevance": 3},
         {"document_id": "CASE-014-07", "relevance": 3},
         {"document_id": "CASE-014-06", "relevance": 2},
+        {"document_id": "CASE-014-01", "relevance": 2},
         {"document_id": "CASE-014-05", "relevance": 1}
       ],
       "reference_answer": "Die Übertragung am 12.07.2021 liegt im fünften Jahr vor dem Erbfall und wird nur zu 6/10 berücksichtigt (§ 2325 Abs. 3 BGB): bei gemischter Schenkung 25.000 × 6/10 = 15.000 EUR (Ergänzung 7.500 EUR), bei voller Unentgeltlichkeit 215.000 × 6/10 = 129.000 EUR (Ergänzung 64.500 EUR)."
@@ -578,6 +607,7 @@
         {"document_id": "CASE-016-07", "relevance": 3},
         {"document_id": "CASE-016-05", "relevance": 3},
         {"document_id": "CASE-016-02", "relevance": 3},
+        {"document_id": "CASE-016-01", "relevance": 3},
         {"document_id": "CASE-016-03", "relevance": 2},
         {"document_id": "CASE-016-06", "relevance": 1},
         {"document_id": "CASE-016-04", "relevance": 1}
@@ -604,6 +634,7 @@
       "difficulty": "mittel",
       "relevant_documents": [
         {"document_id": "CASE-017-04", "relevance": 3},
+        {"document_id": "CASE-017-01", "relevance": 3},
         {"document_id": "CASE-017-03", "relevance": 2},
         {"document_id": "CASE-017-02", "relevance": 2},
         {"document_id": "CASE-017-07", "relevance": 2},
@@ -621,7 +652,8 @@
         {"document_id": "CASE-017-07", "relevance": 3},
         {"document_id": "CASE-017-06", "relevance": 3},
         {"document_id": "CASE-017-02", "relevance": 2},
-        {"document_id": "CASE-017-05", "relevance": 2}
+        {"document_id": "CASE-017-05", "relevance": 2},
+        {"document_id": "CASE-017-01", "relevance": 2}
       ],
       "reference_answer": "Gefordert waren 2.404,10 EUR (Gegenstandswert 40.000 EUR). Das Angebot der Gegenseite von 1.680,00 EUR einschließlich Auslagen soll angenommen werden, wenn die Erklärung insgesamt bis 13.02.2026 abgegeben wird."
     },
@@ -647,8 +679,10 @@
         {"document_id": "CASE-018-04", "relevance": 3},
         {"document_id": "CASE-018-05", "relevance": 3},
         {"document_id": "CASE-018-06", "relevance": 3},
+        {"document_id": "CASE-018-07", "relevance": 3},
         {"document_id": "CASE-018-03", "relevance": 2},
-        {"document_id": "CASE-018-02", "relevance": 2}
+        {"document_id": "CASE-018-02", "relevance": 2},
+        {"document_id": "CASE-018-01", "relevance": 2}
       ],
       "reference_answer": "Verzugszinsen dürfen nur fünf statt neun Prozentpunkte über dem Basiszins betragen (§ 497 BGB), das Kündigungsbearbeitungsentgelt von 460,00 EUR ist unzulässig und erstattungsfähige Mahnkosten betragen nur 90,00 EUR. Die Bank korrigierte die Forderung von 17.275,00 EUR auf 16.062,40 EUR (Kanzlei-Berechnung 16.050,00 EUR)."
     },
@@ -659,6 +693,7 @@
       "difficulty": "leicht",
       "relevant_documents": [
         {"document_id": "CASE-019-02", "relevance": 3},
+        {"document_id": "CASE-019-06", "relevance": 3},
         {"document_id": "CASE-019-04", "relevance": 2},
         {"document_id": "CASE-019-03", "relevance": 1},
         {"document_id": "CASE-019-01", "relevance": 1}
@@ -674,6 +709,9 @@
         {"document_id": "CASE-019-06", "relevance": 3},
         {"document_id": "CASE-019-07", "relevance": 3},
         {"document_id": "CASE-019-02", "relevance": 2},
+        {"document_id": "CASE-019-01", "relevance": 2},
+        {"document_id": "CASE-019-03", "relevance": 2},
+        {"document_id": "CASE-019-05", "relevance": 2},
         {"document_id": "CASE-019-04", "relevance": 1}
       ],
       "reference_answer": "In Nordrhein-Westfalen ist vor Klageerhebung regelmäßig ein Schlichtungsverfahren vor dem Schiedsamt nötig (§ 53 JustG NRW zu prüfen); § 4 der Vereinbarung sieht es ebenfalls vor. Antrag am 02.04.2026, Termin am 12.05.2026; bei Erfolglosigkeit wird eine Bescheinigung ausgestellt, die zur Klage berechtigt."
@@ -687,7 +725,8 @@
         {"document_id": "CASE-019-05", "relevance": 3},
         {"document_id": "CASE-019-06", "relevance": 3},
         {"document_id": "CASE-019-03", "relevance": 2},
-        {"document_id": "CASE-019-02", "relevance": 2}
+        {"document_id": "CASE-019-02", "relevance": 2},
+        {"document_id": "CASE-019-04", "relevance": 2}
       ],
       "reference_answer": "Der Nachbar verweist auf das CE-Kennzeichen, hält das Privatgutachten für nicht neutral (Messung in Hitzeperiode) und meint, „technische Anlagen“ umfasse nur Pools und Pumpen. Die Kanzlei sieht den Wortlaut von § 3 (Wärmepumpen) als eindeutig, räumt aber die Schwäche des Privatgutachtens ein und erwägt eine Messung durch die Stadt oder ein gerichtliches Gutachten."
     },
@@ -712,7 +751,8 @@
         {"document_id": "CASE-020-05", "relevance": 3},
         {"document_id": "CASE-020-06", "relevance": 3},
         {"document_id": "CASE-020-04", "relevance": 2},
-        {"document_id": "CASE-020-07", "relevance": 2}
+        {"document_id": "CASE-020-07", "relevance": 2},
+        {"document_id": "CASE-020-01", "relevance": 2}
       ],
       "reference_answer": "Gefordert werden 4.485,00 EUR Minderung (Baulärm 2.275, Schimmel 975, Pool 780, Buffet 455) plus 1.500,00 EUR Entschädigung. Die Veranstalterin bietet 2.400,00 EUR (zuvor 1.200,00 EUR Kulanz); die Kanzlei hält 2.800 bis 3.600 EUR für realistisch und schlägt 3.600 EUR vor."
     },
@@ -724,6 +764,7 @@
       "relevant_documents": [
         {"document_id": "CASE-021-04", "relevance": 3},
         {"document_id": "CASE-021-07", "relevance": 3},
+        {"document_id": "CASE-021-05", "relevance": 3},
         {"document_id": "CASE-021-02", "relevance": 2},
         {"document_id": "CASE-021-06", "relevance": 2},
         {"document_id": "CASE-021-03", "relevance": 1},
@@ -752,6 +793,7 @@
       "relevant_documents": [
         {"document_id": "CASE-021-06", "relevance": 3},
         {"document_id": "CASE-021-07", "relevance": 3},
+        {"document_id": "CASE-021-05", "relevance": 2},
         {"document_id": "CASE-021-04", "relevance": 1}
       ],
       "reference_answer": "Die Versicherung bietet 18.000,00 EUR bis 31.07.2026 (31,9 % der 56.500,00 EUR). Die Kanzlei hält 28.000 bis 34.000 EUR für realistisch und macht einen Gegenvorschlag über 32.000 EUR bis 24.07.2026, andernfalls Klage vor dem Landgericht Leipzig."
@@ -764,6 +806,10 @@
       "relevant_documents": [
         {"document_id": "CASE-024-07", "relevance": 3},
         {"document_id": "CASE-024-02", "relevance": 3},
+        {"document_id": "CASE-024-03", "relevance": 3},
+        {"document_id": "CASE-024-04", "relevance": 2},
+        {"document_id": "CASE-024-05", "relevance": 2},
+        {"document_id": "CASE-024-06", "relevance": 2},
         {"document_id": "CASE-024-01", "relevance": 1}
       ],
       "reference_answer": "Die Verjährung ist vertraglich auf ein Jahr ab Ablieferung (28.11.2025) verkürzt und endet am 28.11.2026; Verhandlungen hemmen, sicherheitshalber ist vorher Klage zu erheben."
@@ -775,8 +821,10 @@
       "difficulty": "mittel",
       "relevant_documents": [
         {"document_id": "CASE-024-07", "relevance": 3},
+        {"document_id": "CASE-024-06", "relevance": 3},
         {"document_id": "CASE-024-05", "relevance": 2},
         {"document_id": "CASE-024-01", "relevance": 2},
+        {"document_id": "CASE-024-03", "relevance": 2},
         {"document_id": "CASE-024-04", "relevance": 1}
       ],
       "reference_answer": "Reparatur 5.100,00 + Gutachten 690,00 + Transport/Diagnose 450,00 + Mietwagen bisher 620,00 = 6.860,00 EUR zuzüglich weiterer Mietwagenkosten."
@@ -792,6 +840,7 @@
         {"document_id": "CASE-024-06", "relevance": 3},
         {"document_id": "CASE-024-04", "relevance": 2},
         {"document_id": "CASE-024-03", "relevance": 2},
+        {"document_id": "CASE-024-01", "relevance": 2},
         {"document_id": "CASE-024-02", "relevance": 1}
       ],
       "reference_answer": "Es gilt die Vermutung des § 477 BGB. Das Gutachten sieht einen länger bestehenden Schaden (Abrieb, Fehlereinträge bereits bei 61.600 km, keine unsachgemäße Benutzung). Die Verkäuferin beruft sich auf Verschleiß, hohe Fahrleistung (rund 5.350 km in sechs Wochen) und erkennt das einseitig beauftragte Privatgutachten nicht an."
@@ -831,7 +880,9 @@
         {"document_id": "CASE-007-06", "relevance": 2},
         {"document_id": "CASE-007-07", "relevance": 2},
         {"document_id": "CASE-015-06", "relevance": 2},
-        {"document_id": "CASE-015-07", "relevance": 2}
+        {"document_id": "CASE-015-07", "relevance": 2},
+        {"document_id": "CASE-015-01", "relevance": 2},
+        {"document_id": "CASE-015-04", "relevance": 2}
       ],
       "reference_answer": "Im Werkvertragsstreit Wagner ./. Linden UG (CASE-007, § 641 Abs. 3 BGB) und im Bauvertrag Roth ./. Rheinhaus Bau GmbH (CASE-015, Abschlagsrate 5)."
     },
@@ -847,6 +898,12 @@
         {"document_id": "CASE-008-07", "relevance": 3},
         {"document_id": "CASE-022-05", "relevance": 3},
         {"document_id": "CASE-022-06", "relevance": 3},
+        {"document_id": "CASE-005-01", "relevance": 3},
+        {"document_id": "CASE-005-06", "relevance": 3},
+        {"document_id": "CASE-008-06", "relevance": 3},
+        {"document_id": "CASE-022-01", "relevance": 3},
+        {"document_id": "CASE-005-04", "relevance": 2},
+        {"document_id": "CASE-022-03", "relevance": 2},
         {"document_id": "CASE-016-07", "relevance": 1}
       ],
       "reference_answer": "Gewerbemiete Fischer (Ankündigungsklausel für Minderung, CASE-005), Lizenzvertrag Neumann (verschuldensunabhängige Vertragsstrafe, CASE-008) und Gewerbemiete Fuchs (Einwendungsfrist mit Anerkenntnisfiktion, CASE-022)."
@@ -860,8 +917,13 @@
         {"document_id": "CASE-008-05", "relevance": 3},
         {"document_id": "CASE-011-05", "relevance": 3},
         {"document_id": "CASE-017-05", "relevance": 3},
+        {"document_id": "CASE-008-07", "relevance": 3},
+        {"document_id": "CASE-017-01", "relevance": 3},
         {"document_id": "CASE-008-06", "relevance": 2},
-        {"document_id": "CASE-017-04", "relevance": 2}
+        {"document_id": "CASE-017-04", "relevance": 2},
+        {"document_id": "CASE-008-01", "relevance": 2},
+        {"document_id": "CASE-011-01", "relevance": 2},
+        {"document_id": "CASE-017-06", "relevance": 2}
       ],
       "reference_answer": "Im Lizenzstreit Neumann ./. Neckar AG (CASE-008), im Urheberrechtsfall Sommer ./. Nordstern Immobilien AG (CASE-011, modifizierte Erklärung der Gegenseite) und im Wettbewerbsstreit Naturkraft Kosmetik ./. Linden Naturprodukte AG (CASE-017)."
     },
@@ -876,6 +938,8 @@
         {"document_id": "CASE-014-01", "relevance": 3},
         {"document_id": "CASE-015-01", "relevance": 3},
         {"document_id": "CASE-023-01", "relevance": 3},
+        {"document_id": "CASE-009-07", "relevance": 3},
+        {"document_id": "CASE-014-04", "relevance": 3},
         {"document_id": "KANZLEI-02", "relevance": 1}
       ],
       "reference_answer": "Keine Rechtsschutzversicherung: Schmidt ./. Mainufer UG (CASE-004), Koch ./. Hanse Digital GmbH (CASE-009), Winter ./. Hartl (CASE-014). Rechtsschutz ohne den benötigten Baustein: Roth ./. Rheinhaus Bau GmbH (ohne Baurechtsbaustein, CASE-015) und Brinkmann ./. Isar Digital AG (ohne Arbeitsrecht, CASE-023)."
@@ -889,8 +953,11 @@
         {"document_id": "KANZLEI-04", "relevance": 3},
         {"document_id": "CASE-002-04", "relevance": 3},
         {"document_id": "CASE-023-05", "relevance": 3},
+        {"document_id": "CASE-002-08", "relevance": 3},
         {"document_id": "CASE-002-05", "relevance": 2},
-        {"document_id": "CASE-023-06", "relevance": 2}
+        {"document_id": "CASE-023-06", "relevance": 2},
+        {"document_id": "CASE-002-07", "relevance": 2},
+        {"document_id": "CASE-023-07", "relevance": 2}
       ],
       "reference_answer": "Höchstens drei Bruttomonatsgehälter (§ 42 Abs. 2 GKG): Hartmann 3 × 4.850,00 = 14.550,00 EUR, Brinkmann drei Monatsvergütungen = 19.440,00 EUR."
     },
@@ -902,6 +969,7 @@
       "relevant_documents": [
         {"document_id": "CASE-005-04", "relevance": 3},
         {"document_id": "CASE-022-03", "relevance": 3},
+        {"document_id": "CASE-022-06", "relevance": 3},
         {"document_id": "CASE-005-05", "relevance": 2},
         {"document_id": "CASE-005-06", "relevance": 2},
         {"document_id": "CASE-005-07", "relevance": 2},
@@ -951,6 +1019,7 @@
       "difficulty": "mittel",
       "relevant_documents": [
         {"document_id": "KANZLEI-02", "relevance": 3},
+        {"document_id": "KANZLEI-04", "relevance": 2},
         {"document_id": "KANZLEI-01", "relevance": 1},
         {"document_id": "KANZLEI-03", "relevance": 1}
       ],
@@ -974,6 +1043,8 @@
       "relevant_documents": [
         {"document_id": "KANZLEI-03", "relevance": 3},
         {"document_id": "KANZLEI-02", "relevance": 3},
+        {"document_id": "CASE-002-05", "relevance": 3},
+        {"document_id": "CASE-002-08", "relevance": 3},
         {"document_id": "CASE-002-04", "relevance": 2}
       ],
       "reference_answer": "Jede Partei trägt ihre Anwaltskosten selbst (§ 12a ArbGG); darüber ist der Mandant bei Mandatsannahme aufzuklären."

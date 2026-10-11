@@ -28,7 +28,7 @@ The corpus is synthetic. Every person, company and case is fictional.
 - 177 documents: 25 cases (`CASE-001` to `CASE-025`) with 6 to 8 documents each, plus 5 internal firm documents (`KANZLEI-01` to `KANZLEI-05`).
 - Practice areas include tenancy, employment, sales, corporate, data protection, copyright, insurance, family and inheritance law.
 - Document types: client intake notes, contracts, lawyer letters, opposing letters, internal file memos, client e-mails, court filings, expert opinions and firm guidelines.
-- Lengths range from about 100 to about 2,900 words, so short letters and long memos and filings are both covered.
+- Lengths range from about 100 to about 3,000 words, so short letters and long memos and filings are both covered.
 
 | Path | Content |
 |---|---|

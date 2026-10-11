@@ -14,7 +14,7 @@ CONTEXT_K = 5
 RANKER_MODEL = "semantic-ranker-512@latest"
 
 CORPUS_NAME = (
-    "projects/187644435346/locations/europe-west3/ragCorpora/4611686018427387904"
+    "projects/187644435346/locations/europe-west3/ragCorpora/1152921504606846976"
 )
 
 
