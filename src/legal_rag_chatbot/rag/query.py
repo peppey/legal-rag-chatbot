@@ -1,4 +1,5 @@
 import re
+import threading
 from functools import lru_cache
 from typing import Any, Literal
 
@@ -19,15 +20,29 @@ CORPUS_NAME = (
 
 Ranker = Literal["llm", "service"]
 
+# lru_cache alone can build a client twice when threads start together; a discarded
+# client closes its connection when it is garbage collected, even mid-request.
+_client_lock = threading.Lock()
+
 
 @lru_cache(maxsize=1)
-def rag_client() -> agentplatform.Client:
+def _rag_client() -> agentplatform.Client:
     return agentplatform.Client(project=PROJECT_ID, location=LOCATION)
 
 
 @lru_cache(maxsize=1)
-def genai_client() -> genai.Client:
+def _genai_client() -> genai.Client:
     return genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
+
+
+def rag_client() -> agentplatform.Client:
+    with _client_lock:
+        return _rag_client()
+
+
+def genai_client() -> genai.Client:
+    with _client_lock:
+        return _genai_client()
 
 
 def build_retrieval_config(

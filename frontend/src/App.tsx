@@ -245,18 +245,26 @@ export default function App() {
       );
 
     try {
-      await askQuestionStream(text, documents, history, {
-        onSources: (sources) => update((m) => ({ ...m, sources })),
-        onDelta: (delta) => update((m) => ({ ...m, content: m.content + delta })),
-        onDone: (cited) =>
-          update((m) => ({
-            ...m,
-            streaming: false,
-            sources: cited
-              ? m.sources?.filter((s) => s.number !== undefined && cited.includes(s.number))
-              : m.sources
-          }))
-      });
+      await askQuestionStream(
+        text,
+        documents,
+        history,
+        {
+          onSources: (sources) => update((m) => ({ ...m, sources })),
+          onDelta: (delta) =>
+            update((m) => ({ ...m, content: m.content + delta })),
+          onDone: (cited) =>
+            update((m) => ({
+              ...m,
+              streaming: false,
+              sources: cited
+                ? m.sources?.filter(
+                    (s) => s.number !== undefined && cited.includes(s.number)
+                  )
+                : m.sources
+            }))
+        }
+      );
     } catch (err) {
       update((m) => ({ ...m, streaming: false }));
       setError(

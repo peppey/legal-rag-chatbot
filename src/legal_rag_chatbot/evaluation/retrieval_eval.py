@@ -19,6 +19,7 @@ from legal_rag_chatbot.evaluation.dataset import (
     load_corpus,
     load_questions,
 )
+from legal_rag_chatbot.llm.chat import Turn, standalone_question
 from legal_rag_chatbot.rag.query import (
     LOCATION,
     PROJECT_ID,
@@ -54,13 +55,22 @@ def evaluate_question(
     top_k: int,
     ranker: Ranker | None = None,
     ranker_model: str | None = None,
+    rewrite: bool = True,
 ) -> dict[str, Any]:
-    """Retrieve contexts for one question and compute its retrieval metrics."""
+    """Retrieve contexts for one question and compute its retrieval metrics.
+
+    Questions with a chat history are searched with their rewritten, standalone form,
+    unless rewrite is False (then the raw follow-up is searched).
+    """
     ks = ks_for(top_k)
+    query = question["question"]
+    history = [Turn(**turn) for turn in question.get("history", [])]
+    if rewrite and history:
+        query = standalone_question(query, history)
     for attempt in range(MAX_ATTEMPTS):
         try:
             contexts = fetch_contexts(
-                question["question"],
+                query,
                 top_k=top_k,
                 client=client,
                 ranker=ranker,
@@ -98,6 +108,8 @@ def evaluate_question(
         "unmapped_chunks": chunk_docs.count(None),
         "stale_chunks": stale,
     }
+    if query != question["question"]:
+        result["query"] = query
     if relevance:
         result["mrr"] = metrics.reciprocal_rank(ranked, relevance)
         for k in ks:
@@ -160,10 +172,14 @@ def run(
     workers: int,
     ranker: Ranker | None = None,
     ranker_model: str | None = None,
+    rewrite: bool = True,
+    category: str | None = None,
 ) -> dict[str, Any]:
     """Evaluate all questions in parallel and return the full report."""
     ks = ks_for(top_k)
-    questions = load_questions()[:limit]
+    questions = [
+        q for q in load_questions() if category is None or q["category"] == category
+    ][:limit]
     corpus = load_corpus()
     normalized_corpus = {
         doc_id: normalize(doc["content"]) for doc_id, doc in corpus.items()
@@ -182,7 +198,7 @@ def run(
         results = list(
             pool.map(
                 lambda q: evaluate_question(
-                    q, client, normalized_corpus, top_k, ranker, ranker_model
+                    q, client, normalized_corpus, top_k, ranker, ranker_model, rewrite
                 ),
                 questions,
             )
@@ -207,6 +223,7 @@ def run(
             "ks": ks,
             "ranker": ranker,
             "ranker_model": ranker_model,
+            "rewrite": rewrite,
             "questions": len(questions),
         },
         "summary": summary,
@@ -224,7 +241,13 @@ def main() -> None:
     )
     parser.add_argument("--ranker", choices=["llm", "service"], help="Reranker type")
     parser.add_argument("--ranker-model", help="Model name of the reranker")
+    parser.add_argument(
+        "--no-rewrite",
+        action="store_true",
+        help="Search follow-up questions as they are, without the chat history",
+    )
     parser.add_argument("--limit", type=int, help="Only evaluate the first N questions")
+    parser.add_argument("--category", help="Only evaluate questions of this category")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--output", type=Path, help="Where to write the JSON report")
     args = parser.parse_args()
@@ -232,7 +255,15 @@ def main() -> None:
     if args.ranker and not args.ranker_model:
         parser.error("--ranker requires --ranker-model")
 
-    report = run(args.top_k, args.limit, args.workers, args.ranker, args.ranker_model)
+    report = run(
+        args.top_k,
+        args.limit,
+        args.workers,
+        args.ranker,
+        args.ranker_model,
+        rewrite=not args.no_rewrite,
+        category=args.category,
+    )
 
     summary = report["summary"]
     ks = tuple(report["config"]["ks"])

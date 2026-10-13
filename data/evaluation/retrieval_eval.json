@@ -10,7 +10,8 @@
       "document_id entspricht dem gleichnamigen Feld im Korpus. Nicht gelistete Dokumente gelten als nicht relevant (Relevanz 0).",
       "relevant_documents ist pro Frage nach Relevanz absteigend sortiert und für nDCG, MRR, Recall@k und Precision@k geeignet.",
       "Fragen der Kategorie nicht_im_korpus haben eine leere relevant_documents-Liste: Die Antwort steht nicht im Korpus. Sie sind aus Recall/nDCG auszunehmen und prüfen, ob das System keine Antwort erfindet.",
-      "reference_answer dient nur der Nachvollziehbarkeit der Relevanzvergabe und als Referenz für die Antwortqualität."
+      "reference_answer dient nur der Nachvollziehbarkeit der Relevanzvergabe und als Referenz für die Antwortqualität.",
+      "Fragen der Kategorie folgefrage haben ein Feld history mit den vorherigen Chatnachrichten. Ihre Relevanzlabels beziehen sich auf die Informationslücke der Folgefrage, nicht auf die Ausgangsfrage."
     ],
     "relevance_scale": {
       "3": "Kerndokument: enthält die Antwort oder den wesentlichen Teil der Antwort direkt.",
@@ -32,7 +33,8 @@
       "gegenseite_und_verhandlung": "Position der Gegenseite, Vergleichs- und Verhandlungsstand.",
       "kanzleiorganisation": "Interne Richtlinien, Gebühren und Arbeitshilfen der Kanzlei.",
       "mehrere_faelle": "Die Antwort erfordert Dokumente aus mehreren Mandaten.",
-      "nicht_im_korpus": "Die Antwort ist im Korpus nicht enthalten (Negativfall)."
+      "nicht_im_korpus": "Die Antwort ist im Korpus nicht enthalten (Negativfall).",
+      "folgefrage": "Kurze Rückfrage, die sich auf den Chatverlauf (Feld history) bezieht und ohne ihn nicht suchbar ist. Die Evaluation formuliert sie mit dem Verlauf um (Query Rewriting)."
     }
   },
   "questions": [
@@ -1101,6 +1103,119 @@
       "difficulty": "schwer",
       "relevant_documents": [],
       "reference_answer": "Nicht im Korpus: Der Aktenvermerk plant nur einen Antrag auf einstweilige Verfügung bis 13.02.2026, ein Ergebnis ist nicht dokumentiert."
+    },
+    {
+      "id": "Q078",
+      "question": "Und hat sie das schon getan?",
+      "history": [
+        {"role": "user", "content": "Bis wann muss Frau Keller der Eigenbedarfskündigung des Vermieters Wendt widersprechen, und wann ist die Wiedervorlage dafür eingetragen?"},
+        {"role": "assistant", "content": "Der Widerspruch nach § 574b Abs. 2 BGB muss dem Vermieter bis 31.08.2026 zugehen, Wiedervorlage ist der 14.08.2026."}
+      ],
+      "category": "folgefrage",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-001-08", "relevance": 3},
+        {"document_id": "CASE-001-06", "relevance": 3},
+        {"document_id": "CASE-001-04", "relevance": 1}
+      ],
+      "reference_answer": "Ja, Frau Keller hat der Eigenbedarfskündigung bereits am 20.02.2026 widersprochen (Anwaltsschreiben an Herrn Wendt)."
+    },
+    {
+      "id": "Q079",
+      "question": "Wann hat er sie dann eingereicht?",
+      "history": [
+        {"role": "user", "content": "Bis wann musste Herr Hartmann seine Kündigungsschutzklage gegen die Rheinblick Logistik AG erheben?"},
+        {"role": "assistant", "content": "Bei Zugang am 14.01.2026 endete die Dreiwochenfrist des § 4 KSchG am 04.02.2026."}
+      ],
+      "category": "folgefrage",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-002-05", "relevance": 3},
+        {"document_id": "CASE-002-07", "relevance": 2},
+        {"document_id": "CASE-002-04", "relevance": 1}
+      ],
+      "reference_answer": "Die Klage wurde am 28.01.2026 eingereicht, also vor Ablauf der Frist am 04.02.2026."
+    },
+    {
+      "id": "Q080",
+      "question": "Von welchem Monatsgehalt geht sie dabei aus?",
+      "history": [
+        {"role": "user", "content": "Welche Abfindung wird im Verfahren Hartmann gegen die Rheinblick Logistik AG empfohlen, und wie berechnet sich die Regelabfindung?"},
+        {"role": "assistant", "content": "Die Regelabfindung beträgt etwa 18.600,00 EUR brutto, empfohlen wird eine Einigung bei 18.000 bis 19.000 EUR brutto mit qualifiziertem Zeugnis."}
+      ],
+      "category": "folgefrage",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-002-08", "relevance": 3},
+        {"document_id": "CASE-002-02", "relevance": 2},
+        {"document_id": "CASE-002-05", "relevance": 2}
+      ],
+      "reference_answer": "Die Regelabfindung wird mit einem Monatsverdienst von 4.850,00 EUR brutto berechnet (0,5 × 4.850,00 EUR × 7,67 Jahre)."
+    },
+    {
+      "id": "Q081",
+      "question": "Und wann wurde das ausgelesen?",
+      "history": [
+        {"role": "user", "content": "Welcher Betriebsstundenstand ist im Kaufvertrag über das CNC-Bearbeitungszentrum Brenner BZ 2200 angegeben, und welcher Stand wurde tatsächlich ausgelesen?"},
+        {"role": "assistant", "content": "Im Vertrag stehen 4.212 Betriebsstunden, tatsächlich ausgelesen wurden 8.037 Stunden."}
+      ],
+      "category": "folgefrage",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-003-01", "relevance": 3},
+        {"document_id": "CASE-003-03", "relevance": 3},
+        {"document_id": "CASE-003-06", "relevance": 1}
+      ],
+      "reference_answer": "Die Steuerung zeigte am 05.01.2026 einen Gesamtstand von 8.037 Stunden."
+    },
+    {
+      "id": "Q082",
+      "question": "Aus welchen Rechnungen setzt sich das zusammen?",
+      "history": [
+        {"role": "user", "content": "Wie hoch ist der offene Rechnungsbetrag von Frau Schmidt gegenüber der Mainufer UG insgesamt (brutto)?"},
+        {"role": "assistant", "content": "Der offene Rechnungsbetrag beträgt insgesamt 5.593,00 EUR brutto."}
+      ],
+      "category": "folgefrage",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-004-04", "relevance": 3},
+        {"document_id": "CASE-004-01", "relevance": 2},
+        {"document_id": "CASE-004-03", "relevance": 1},
+        {"document_id": "CASE-004-06", "relevance": 1}
+      ],
+      "reference_answer": "Aus den Rechnungen vom 30.09.2025 und 31.10.2025 über je 2.796,50 EUR brutto."
+    },
+    {
+      "id": "Q083",
+      "question": "Bis wann hat die Gegenseite dafür eine Frist gesetzt?",
+      "history": [
+        {"role": "user", "content": "Wie hoch ist der streitige Mietrückstand im Fall Fischer nach dem Schreiben der Gegenseite, und was wird zum Umgang damit empfohlen?"},
+        {"role": "assistant", "content": "Streitig sind 1.380,00 EUR netto (1.642,20 EUR brutto). Empfohlen wird, den Betrag vor Fristablauf unter Vorbehalt der Rückforderung zu zahlen."}
+      ],
+      "category": "folgefrage",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-005-06", "relevance": 3},
+        {"document_id": "CASE-005-07", "relevance": 2}
+      ],
+      "reference_answer": "Die Gegenseite hat eine Frist bis 26.03.2026 gesetzt."
+    },
+    {
+      "id": "Q084",
+      "question": "Wie hat sie diesen Betrag berechnet?",
+      "history": [
+        {"role": "user", "content": "Wie viel Wertersatz hat die Westend GmbH nach dem Widerruf des E-Bikes einbehalten, und wie hat sie das begründet?"},
+        {"role": "assistant", "content": "Die Westend GmbH hat 917,50 EUR einbehalten und das mit der Fahrleistung und Gebrauchsspuren begründet."}
+      ],
+      "category": "folgefrage",
+      "difficulty": "mittel",
+      "relevant_documents": [
+        {"document_id": "CASE-006-03", "relevance": 3},
+        {"document_id": "CASE-006-06", "relevance": 2},
+        {"document_id": "CASE-006-04", "relevance": 1},
+        {"document_id": "CASE-006-01", "relevance": 1}
+      ],
+      "reference_answer": "Pauschal mit 35 % des Kaufpreises von 2.625,00 EUR, das ergibt 917,50 EUR."
     }
   ]
 }

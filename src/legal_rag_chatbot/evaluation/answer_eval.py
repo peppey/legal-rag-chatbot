@@ -7,7 +7,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Literal, TypeVar
+from typing import Any, Callable, Literal, Sequence, TypeVar
 
 from google import genai
 from google.genai import types
@@ -18,14 +18,23 @@ from legal_rag_chatbot.evaluation.dataset import (
     RESULTS_DIR,
     load_questions,
 )
-from legal_rag_chatbot.llm.chat import answer_question, answer_question_grounded
+from legal_rag_chatbot.llm.chat import (
+    Turn,
+    answer_question,
+    answer_question_grounded,
+    standalone_question,
+)
 from legal_rag_chatbot.rag.query import PROJECT_ID
 
 T = TypeVar("T")
 
-ANSWER_FUNCTIONS: dict[str, Callable[[str], str]] = {
-    "rerank": answer_question,
-    "grounded": answer_question_grounded,
+# Answer functions take the question and the earlier chat messages (empty for most questions).
+AnswerFn = Callable[[str, Sequence[Turn]], str]
+ANSWER_FUNCTIONS: dict[str, AnswerFn] = {
+    "rerank": lambda question, history: answer_question(question, history=history),
+    "grounded": lambda question, history: answer_question_grounded(
+        standalone_question(question, history)
+    ),
 }
 
 JUDGE_MODEL = "gemini-2.5-pro"
@@ -103,10 +112,11 @@ def _with_retry(call: Callable[[], T], attempts: int = 6) -> T:
 def evaluate_question(
     client: genai.Client,
     question: dict[str, Any],
-    answer_fn: Callable[[str], str] = answer_question,
+    answer_fn: AnswerFn = ANSWER_FUNCTIONS["rerank"],
 ) -> dict[str, Any]:
     """Generate an answer for one question and judge it."""
-    answer = _with_retry(lambda: answer_fn(question["question"])) or ""
+    history = [Turn(**turn) for turn in question.get("history", [])]
+    answer = _with_retry(lambda: answer_fn(question["question"], history)) or ""
     judgement = _with_retry(lambda: judge(client, question, answer))
 
     return {

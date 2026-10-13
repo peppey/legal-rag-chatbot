@@ -17,6 +17,8 @@ LOCATION = "europe-west3"
 MODEL = "gemini-2.5-flash"
 # Thinking adds about two seconds per answer; the answers are extractive and cited.
 THINKING_BUDGET = 0
+# Resolves follow-up questions with the chat history before the search (see standalone_question).
+REWRITE_FOLLOW_UPS = True
 
 RETRIEVE_K = 20
 CONTEXT_K = 5
@@ -124,6 +126,31 @@ HISTORY_TURNS = 6
 HISTORY_TURN_CHARS = 1500
 CITATION_MARKER = re.compile(r"\s?\[\d+\]")
 
+# A question with a file number is searchable on its own. Otherwise it is treated as a
+# follow-up if it is short, starts like a continuation or contains a reference word.
+# Over-matching only costs one extra model call.
+FILE_NUMBER = re.compile(r"\b(?:CASE|KANZLEI)-\d+", re.IGNORECASE)
+FOLLOW_UP_START = re.compile(
+    r"(?:und|aber|oder|auch|noch|dann|also|wie sieht es)\b", re.IGNORECASE
+)
+REFERENCE_WORD = re.compile(
+    r"\b(?:sie|er|es|ihm|ihn|ihnen|ihr\w*|sein\w*|das|dies\w*|jene\w*|dort|dann"
+    r"|dafür|dazu|davon|dabei|daraus|darüber|hierzu|hierfür|damit|derselbe|dieselbe)\b",
+    re.IGNORECASE,
+)
+MIN_STANDALONE_WORDS = 7
+
+
+def needs_rewrite(question: str) -> bool:
+    """Heuristic: does the question probably depend on the previous chat messages?"""
+    if FILE_NUMBER.search(question):
+        return False
+    return (
+        len(question.split()) < MIN_STANDALONE_WORDS
+        or bool(FOLLOW_UP_START.match(question.strip()))
+        or bool(REFERENCE_WORD.search(question))
+    )
+
 
 @dataclass
 class Turn:
@@ -175,7 +202,7 @@ class PreparedAnswer:
 def standalone_question(question: str, history: Sequence[Turn]) -> str:
     """Rewrite a follow-up question so that it is understandable without the chat history."""
     turns = history[-HISTORY_TURNS:]
-    if not turns:
+    if not REWRITE_FOLLOW_UPS or not turns or not needs_rewrite(question):
         return question
     transcript = "\n".join(
         f"{'Nutzer' if turn.role == 'user' else 'Assistent'}: "
@@ -283,10 +310,13 @@ def _excerpt_label(source: Source) -> str:
 
 
 def answer_question(
-    question: str, retrieve_k: int = RETRIEVE_K, context_k: int = CONTEXT_K
+    question: str,
+    retrieve_k: int = RETRIEVE_K,
+    context_k: int = CONTEXT_K,
+    history: Sequence[Turn] = (),
 ) -> str:
     """Like answer_with_sources, but returns only the answer text with [n] markers."""
-    return answer_with_sources(question, retrieve_k, context_k).text
+    return answer_with_sources(question, retrieve_k, context_k, history=history).text
 
 
 def answer_question_grounded(question: str) -> str:
