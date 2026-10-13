@@ -116,6 +116,17 @@ export default function App() {
   }
 
   function openSource(source: Source) {
+    if (!documents.some((doc) => doc.id === source.documentId)) {
+      const corpusDocument: DocumentItem = {
+        id: source.documentId,
+        name: `${source.documentName}.pdf`,
+        type: "application/pdf",
+        size: 0,
+        uploadedAt: new Date().toISOString(),
+        fileUrl: `/api/documents/${source.documentId}/file`
+      };
+      setDocuments((current) => [corpusDocument, ...current]);
+    }
     setSelectedDocumentId(source.documentId);
     setPageNumber(source.page ?? 1);
     setRightOpen(true);
