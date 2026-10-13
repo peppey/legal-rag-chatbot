@@ -1,6 +1,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import ReactMarkdown from "react-markdown";
 import { Document, Page, pdfjs } from "react-pdf";
 import {
   FileText,
@@ -324,7 +325,13 @@ export default function App() {
                   <div className="message-author">
                     {message.role === "assistant" ? "Assistant" : "Du"}
                   </div>
-                  <div className="message-text">{message.content}</div>
+                  <div className="message-text">
+                    {message.role === "assistant" ? (
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    ) : (
+                      message.content
+                    )}
+                  </div>
 
                   {message.sources && message.sources.length > 0 && (
                     <div className="sources">

@@ -475,7 +475,6 @@ textarea:focus-visible {
 }
 
 .message-text {
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
   color: #46554d;
   font-size: 12px;
@@ -483,7 +482,22 @@ textarea:focus-visible {
 }
 
 .message.user .message-text {
+  white-space: pre-wrap;
   color: #26372f;
+}
+
+.message-text p {
+  margin: 0 0 8px;
+}
+
+.message-text ul,
+.message-text ol {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+.message-text > :last-child {
+  margin-bottom: 0;
 }
 
 .sources {
