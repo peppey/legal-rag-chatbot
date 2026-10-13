@@ -96,6 +96,22 @@ for source in answer.cited_sources():
     print(source.number, source.document_id)
 ```
 
+### Web frontend
+
+The React frontend in `frontend/` (Vite, TypeScript) talks to the FastAPI backend in [api.py](src/legal_rag_chatbot/api.py). Vite proxies `/api` to `http://127.0.0.1:8000`. Requires Node.js 18 or newer. Start the backend and the frontend in two terminals:
+
+```bash
+# Terminal 1: backend on http://127.0.0.1:8000
+uv run uvicorn legal_rag_chatbot.api:app --reload
+
+# Terminal 2: frontend on http://localhost:5173
+cd frontend
+npm install   # first run only
+npm run dev
+```
+
+`npm run build` creates a production build in `frontend/dist/`.
+
 ### PDF export and OCR
 
 `export_pdfs` renders every document of the raw JSONL as a PDF and can be run repeatedly. `run_ocr` sends the PDFs to Google Cloud Document AI (Enterprise Document OCR, German language hint) and writes one JSON file per PDF to `data/preprocessed/`. Enable the API once per project:
