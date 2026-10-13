@@ -23,6 +23,7 @@ class ChatRequest(BaseModel):
 
 
 class SourceOut(BaseModel):
+    number: int
     documentId: str
     documentName: str
     excerpt: str
@@ -99,6 +100,7 @@ def chat(request: ChatRequest) -> ChatResponse:
     titles = document_titles()
     sources = [
         SourceOut(
+            number=source.number,
             documentId=source.document_id or "",
             documentName=(
                 source.document_name
@@ -108,7 +110,7 @@ def chat(request: ChatRequest) -> ChatResponse:
                     else "Unbekanntes Dokument"
                 )
             ),
-            excerpt=f"[{source.number}] {source.text[:EXCERPT_CHARS]}",
+            excerpt=source.text[:EXCERPT_CHARS],
             page=source.page,
         )
         for source in answer.cited_sources()

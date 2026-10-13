@@ -33,9 +33,10 @@ def test_chat_returns_answer_and_cited_sources(client: TestClient) -> None:
     assert body["answer"].startswith("Die Frist endet")
     assert body["sources"] == [
         {
+            "number": 1,
             "documentId": "CASE-023-07",
             "documentName": "CASE-023-07 – Klageschrift",
-            "excerpt": "[1] Klagefrist ...",
+            "excerpt": "Klagefrist ...",
         }
     ]
 

@@ -500,6 +500,29 @@ textarea:focus-visible {
   margin-bottom: 0;
 }
 
+.citation {
+  display: inline-grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  margin: 0 2px;
+  vertical-align: 1px;
+  border: 0;
+  border-radius: 999px;
+  background: #e4efe8;
+  color: var(--green);
+  font: 600 9.5px "DM Mono", monospace;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+button.citation:hover {
+  background: var(--green);
+  color: white;
+}
+
 .sources {
   margin-top: 20px;
   border-top: 1px solid #e5eae6;

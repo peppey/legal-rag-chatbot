@@ -1,8 +1,9 @@
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import { Document, Page, pdfjs } from "react-pdf";
+import remarkBreaks from "remark-breaks";
 import {
   FileText,
   FileUp,
@@ -31,6 +32,57 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
   import.meta.url
 ).toString();
+
+// Turns [1] markers of the answer into buttons that open the cited source.
+function MessageText({
+  content,
+  sources,
+  onOpenSource
+}: {
+  content: string;
+  sources?: Source[];
+  onOpenSource: (source: Source) => void;
+}) {
+  const linked = content.replace(/\[(\d+)\](?!\()/g, "[$1](#cite-$1)");
+
+  // A new components object on every render would remount the buttons mid-click
+  // (the dropzone re-renders the app on focus), so keep it stable.
+  const openRef = useRef(onOpenSource);
+  openRef.current = onOpenSource;
+  const components = useMemo<Components>(
+    () => ({
+      a: ({ href, children }) => {
+        const number = href?.match(/^#cite-(\d+)$/)?.[1];
+        if (!number) {
+          return (
+            <a href={href} target="_blank" rel="noreferrer">
+              {children}
+            </a>
+          );
+        }
+        const source = sources?.find((s) => s.number === Number(number));
+        if (!source) return <span className="citation">{children}</span>;
+        return (
+          <button
+            type="button"
+            className="citation"
+            title={`${source.documentName}${source.page ? `, Seite ${source.page}` : ""}`}
+            onClick={() => openRef.current(source)}
+          >
+            {children}
+          </button>
+        );
+      }
+    }),
+    [sources]
+  );
+
+  return (
+    <ReactMarkdown remarkPlugins={[remarkBreaks]} components={components}>
+      {linked}
+    </ReactMarkdown>
+  );
+}
 
 const formatSize = (bytes: number) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -274,7 +326,7 @@ export default function App() {
                       <span className="file-icon"><FileText size={18} /></span>
                       <span className="document-meta">
                         <strong title={doc.name}>{doc.name}</strong>
-                        <small>{formatSize(doc.size)}</small>
+                        <small>{doc.size > 0 ? formatSize(doc.size) : "Aus den Akten"}</small>
                       </span>
                     </button>
                     <button
@@ -327,7 +379,11 @@ export default function App() {
                   </div>
                   <div className="message-text">
                     {message.role === "assistant" ? (
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                      <MessageText
+                        content={message.content}
+                        sources={message.sources}
+                        onOpenSource={openSource}
+                      />
                     ) : (
                       message.content
                     )}
@@ -342,7 +398,7 @@ export default function App() {
                           className="source-card"
                           onClick={() => openSource(source)}
                         >
-                          <span className="source-number">{index + 1}</span>
+                          <span className="source-number">{source.number ?? index + 1}</span>
                           <span className="source-info">
                             <strong>{source.documentName}</strong>
                             <small>
