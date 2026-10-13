@@ -12,12 +12,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
-from google import genai
 from google.genai import types
 
 from legal_rag_chatbot.ingestion.chunking import chunk_paragraphs
 from legal_rag_chatbot.ingestion.extract import ExtractionError, extract_text_units
-from legal_rag_chatbot.rag.query import LOCATION, PROJECT_ID
+from legal_rag_chatbot.rag.query import genai_client
 
 EMBEDDING_MODEL = "text-embedding-005"
 EMBED_BATCH_SIZE = 16
@@ -35,7 +34,7 @@ Embedder = Callable[[list[str], str], np.ndarray]
 
 def embed_texts(texts: list[str], task_type: str) -> np.ndarray:
     """Embed texts with Vertex AI and return L2-normalized row vectors."""
-    client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
+    client = genai_client()
     config = types.EmbedContentConfig(task_type=task_type)
     vectors: list[list[float]] = []
     for start in range(0, len(texts), EMBED_BATCH_SIZE):

@@ -3,6 +3,7 @@ from functools import lru_cache
 from typing import Any, Literal
 
 import agentplatform
+from google import genai
 from google.genai import types as genai_types
 
 from legal_rag_chatbot.evaluation.dataset import load_corpus
@@ -17,6 +18,16 @@ CORPUS_NAME = (
 )
 
 Ranker = Literal["llm", "service"]
+
+
+@lru_cache(maxsize=1)
+def rag_client() -> agentplatform.Client:
+    return agentplatform.Client(project=PROJECT_ID, location=LOCATION)
+
+
+@lru_cache(maxsize=1)
+def genai_client() -> genai.Client:
+    return genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 
 
 def build_retrieval_config(
@@ -49,10 +60,7 @@ def fetch_contexts(
     ranker_model: str | None = None,
 ) -> list[Any]:
     """Return the top_k retrieved contexts for a question, best first."""
-    client = client or agentplatform.Client(
-        project=PROJECT_ID,
-        location=LOCATION,
-    )
+    client = client or rag_client()
 
     response = client.rag.retrieve_contexts(
         vertex_rag_store=genai_types.VertexRagStore(

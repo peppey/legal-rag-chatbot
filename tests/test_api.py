@@ -1,8 +1,10 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
 from legal_rag_chatbot import api
-from legal_rag_chatbot.llm.chat import Answer, Source
+from legal_rag_chatbot.llm.chat import Answer, PreparedAnswer, Source
 from legal_rag_chatbot.rag.session import SessionStore
 
 
@@ -76,3 +78,47 @@ def test_upload_rejects_unsupported_and_empty_files(upload_client: TestClient) -
             "/api/documents/upload", files={"file": (name, data)}
         )
         assert response.status_code == 422
+
+
+def test_chat_stream_sends_sources_deltas_and_cited_numbers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prepared = PreparedAnswer(
+        sources=[
+            Source(1, "CASE-023-07", "gs://bucket/a", "Klagefrist ..."),
+            Source(2, None, "gs://bucket/b", "nicht zitiert"),
+        ],
+        system_prompt="",
+        contents="",
+    )
+    monkeypatch.setattr(api, "prepare_answer", lambda question, **kwargs: prepared)
+    monkeypatch.setattr(
+        api, "stream_answer", lambda prepared: iter(["Die Frist ", "endet [1]."])
+    )
+    monkeypatch.setattr(api, "document_titles", lambda: {"CASE-023-07": "Klageschrift"})
+
+    response = TestClient(api.app).post(
+        "/api/chat/stream", json={"question": "Wann endet die Frist?"}
+    )
+
+    events = [json.loads(line) for line in response.text.splitlines()]
+    assert [e["type"] for e in events] == ["sources", "delta", "delta", "done"]
+    assert [s["number"] for s in events[0]["sources"]] == [1, 2]
+    assert events[-1]["cited"] == [1]
+
+
+def test_chat_stream_reports_generation_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    def failing(prepared: PreparedAnswer):
+        raise RuntimeError("boom")
+        yield
+
+    prepared = PreparedAnswer(sources=[], system_prompt="", contents="")
+    monkeypatch.setattr(api, "prepare_answer", lambda question, **kwargs: prepared)
+    monkeypatch.setattr(api, "stream_answer", failing)
+
+    response = TestClient(api.app).post("/api/chat/stream", json={"question": "x"})
+
+    assert [json.loads(line)["type"] for line in response.text.splitlines()] == [
+        "sources",
+        "error",
+    ]

@@ -1,5 +1,5 @@
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Document, Page, pdfjs } from "react-pdf";
@@ -22,7 +22,7 @@ import {
   ExternalLink
 } from "lucide-react";
 
-import { askQuestion, deleteDocument, isDemoMode, uploadDocument } from "./api";
+import { askQuestionStream, deleteDocument, isDemoMode, uploadDocument } from "./api";
 import type { ChatMessage, DocumentItem, Source } from "./types";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -118,6 +118,19 @@ export default function App() {
     [documents, selectedDocumentId]
   );
 
+  const messagesRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = messagesRef.current;
+    if (!element) return;
+    const nearBottom =
+      element.scrollHeight - element.scrollTop - element.clientHeight < 200;
+    if (nearBottom || messages[messages.length - 1]?.role === "user") {
+      element.scrollTop = element.scrollHeight;
+    }
+  }, [messages]);
+
+  const waitingForAnswer =
+    isAsking && !messages.some((m) => m.streaming && m.content);
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (!acceptedFiles.length) return;
 
@@ -213,28 +226,43 @@ export default function App() {
     };
 
     const nextMessages = [...messages, userMessage];
-    setMessages(nextMessages);
+    const assistantId = crypto.randomUUID();
+    setMessages([
+      ...nextMessages,
+      { id: assistantId, role: "assistant", content: "", streaming: true }
+    ]);
     setQuestion("");
     setIsAsking(true);
     setError(null);
 
-    try {
-      const result = await askQuestion(text, documents, nextMessages);
+    const update = (change: (message: ChatMessage) => ChatMessage) =>
+      setMessages((current) =>
+        current.map((m) => (m.id === assistantId ? change(m) : m))
+      );
 
-      setMessages((current) => [
-        ...current,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: result.answer,
-          sources: result.sources
-        }
-      ]);
+    try {
+      await askQuestionStream(text, documents, nextMessages, {
+        onSources: (sources) => update((m) => ({ ...m, sources })),
+        onDelta: (delta) => update((m) => ({ ...m, content: m.content + delta })),
+        onDone: (cited) =>
+          update((m) => ({
+            ...m,
+            streaming: false,
+            sources: cited
+              ? m.sources?.filter((s) => s.number !== undefined && cited.includes(s.number))
+              : m.sources
+          }))
+      });
     } catch (err) {
+      update((m) => ({ ...m, streaming: false }));
       setError(
         err instanceof Error ? err.message : "Die Anfrage ist fehlgeschlagen."
       );
     } finally {
+      // An answer that failed before the first token leaves no empty bubble behind.
+      setMessages((current) =>
+        current.filter((m) => m.id !== assistantId || m.content)
+      );
       setIsAsking(false);
     }
   }
@@ -367,8 +395,10 @@ export default function App() {
             )}
           </div>
 
-          <div className="messages">
-            {messages.map((message) => (
+          <div className="messages" ref={messagesRef}>
+            {messages
+              .filter((message) => !message.streaming || message.content)
+              .map((message) => (
               <article key={message.id} className={`message ${message.role}`}>
                 <div className="avatar">
                   {message.role === "assistant" ? <Bot size={18} /> : <UserRound size={18} />}
@@ -389,7 +419,7 @@ export default function App() {
                     )}
                   </div>
 
-                  {message.sources && message.sources.length > 0 && (
+                  {!message.streaming && message.sources && message.sources.length > 0 && (
                     <div className="sources">
                       <div className="sources-heading">QUELLEN</div>
                       {message.sources.map((source, index) => (
@@ -415,7 +445,7 @@ export default function App() {
               </article>
             ))}
 
-            {isAsking && (
+            {waitingForAnswer && (
               <div className="thinking">
                 <LoaderCircle className="spin" size={16} />
                 Antwort wird erstellt …

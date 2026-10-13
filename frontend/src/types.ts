@@ -12,6 +12,7 @@ export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   sources?: Source[];
+  streaming?: boolean;
 };
 
 export type DocumentItem = {

@@ -1,15 +1,21 @@
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
-from google import genai
 from google.genai import types
 
 from legal_rag_chatbot.rag import session
-from legal_rag_chatbot.rag.query import fetch_contexts, map_chunk_to_document
+from legal_rag_chatbot.rag.query import (
+    fetch_contexts,
+    genai_client,
+    map_chunk_to_document,
+)
 
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 MODEL = "gemini-2.5-flash"
+# Thinking adds about two seconds per answer; the answers are extractive and cited.
+THINKING_BUDGET = 0
 
 RETRIEVE_K = 20
 CONTEXT_K = 5
@@ -77,6 +83,9 @@ CITATION_INSTRUCTION = """
 Belege jede Tatsachenaussage mit der Nummer des Dokumentauszugs in eckigen
 Klammern, z. B. [1] oder [2][3]. Verwende nur Nummern der bereitgestellten
 Auszüge und zitiere nichts, was dort nicht steht.
+
+Formatiere mit Markdown: Abschnittsüberschriften wie "Fristen und Beträge:"
+fett, mehrere Angaben als Aufzählung mit "- ".
 """
 
 UPLOAD_INSTRUCTION = """
@@ -121,26 +130,45 @@ class Answer:
         return [s for s in self.sources if f"[{s.number}]" in self.text]
 
 
-def answer_with_sources(
+@dataclass
+class PreparedAnswer:
+    """Retrieved excerpts and the Gemini request built from them."""
+
+    sources: list[Source]
+    system_prompt: str
+    contents: str
+
+    @property
+    def config(self) -> types.GenerateContentConfig:
+        return types.GenerateContentConfig(
+            system_instruction=self.system_prompt,
+            thinking_config=types.ThinkingConfig(thinking_budget=THINKING_BUDGET),
+        )
+
+
+def prepare_answer(
     question: str,
     retrieve_k: int = RETRIEVE_K,
     context_k: int = CONTEXT_K,
     uploaded_document_ids: Sequence[str] = (),
-) -> Answer:
-    """Retrieve and rerank retrieve_k chunks, then answer from the best context_k.
+) -> PreparedAnswer:
+    """Retrieve and rerank retrieve_k chunks and collect the best context_k as excerpts.
 
     Excerpts of the given uploaded session documents are added in front of the corpus
     excerpts, they are searched separately and never part of the RAG corpus.
     """
-    contexts = fetch_contexts(
-        question,
-        top_k=retrieve_k,
-        ranker="service",
-        ranker_model=RANKER_MODEL,
-    )[:context_k]
-    hits = session.store.full_text(
-        uploaded_document_ids, UPLOAD_FULL_TEXT_WORDS
-    ) or session.store.search(question, uploaded_document_ids, UPLOAD_CONTEXT_K)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        corpus_search = pool.submit(
+            fetch_contexts,
+            question,
+            top_k=retrieve_k,
+            ranker="service",
+            ranker_model=RANKER_MODEL,
+        )
+        hits = session.store.full_text(
+            uploaded_document_ids, UPLOAD_FULL_TEXT_WORDS
+        ) or session.store.search(question, uploaded_document_ids, UPLOAD_CONTEXT_K)
+        contexts = corpus_search.result()[:context_k]
 
     sources = [
         Source(
@@ -163,15 +191,34 @@ def answer_with_sources(
         for number, c in enumerate(contexts, start=len(hits) + 1)
     ]
     excerpts = "\n\n".join(f"[{s.number}] {_excerpt_label(s)}{s.text}" for s in sources)
-
-    system_prompt = RERANK_SYSTEM_PROMPT + (UPLOAD_INSTRUCTION if hits else "")
-    client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
-    response = client.models.generate_content(
-        model=MODEL,
+    return PreparedAnswer(
+        sources=sources,
+        system_prompt=RERANK_SYSTEM_PROMPT + (UPLOAD_INSTRUCTION if hits else ""),
         contents=f"Dokumentauszüge:\n\n{excerpts}\n\nFrage: {question}",
-        config=types.GenerateContentConfig(system_instruction=system_prompt),
     )
-    return Answer(text=response.text or "", sources=sources)
+
+
+def answer_with_sources(
+    question: str,
+    retrieve_k: int = RETRIEVE_K,
+    context_k: int = CONTEXT_K,
+    uploaded_document_ids: Sequence[str] = (),
+) -> Answer:
+    """Retrieve and rerank retrieve_k chunks, then answer from the best context_k."""
+    prepared = prepare_answer(question, retrieve_k, context_k, uploaded_document_ids)
+    response = genai_client().models.generate_content(
+        model=MODEL, contents=prepared.contents, config=prepared.config
+    )
+    return Answer(text=response.text or "", sources=prepared.sources)
+
+
+def stream_answer(prepared: PreparedAnswer) -> Iterator[str]:
+    """Yield the answer text in pieces as Gemini generates it."""
+    for chunk in genai_client().models.generate_content_stream(
+        model=MODEL, contents=prepared.contents, config=prepared.config
+    ):
+        if chunk.text:
+            yield chunk.text
 
 
 def _excerpt_label(source: Source) -> str:
@@ -191,11 +238,7 @@ def answer_question(
 def answer_question_grounded(question: str) -> str:
     """Answer a question with Gemini's built-in RAG grounding tool (top_k=5)."""
 
-    client = genai.Client(
-        vertexai=True,
-        project=PROJECT_ID,
-        location=LOCATION,
-    )
+    client = genai_client()
 
     rag_tool = types.Tool(
         retrieval=types.Retrieval(

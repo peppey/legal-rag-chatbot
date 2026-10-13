@@ -120,6 +120,72 @@ export async function askQuestion(
   });
 }
 
+export type StreamHandlers = {
+  onSources: (sources: Source[]) => void;
+  onDelta: (text: string) => void;
+  // cited is undefined when the backend does not report which sources were used
+  onDone: (cited?: number[]) => void;
+};
+
+type StreamEvent =
+  | { type: "sources"; sources: Source[] }
+  | { type: "delta"; text: string }
+  | { type: "done"; cited: number[] }
+  | { type: "error"; detail: string };
+
+export async function askQuestionStream(
+  question: string,
+  documents: DocumentItem[],
+  history: ChatMessage[],
+  handlers: StreamHandlers
+): Promise<void> {
+  if (DEMO_MODE) {
+    const result = await askQuestion(question, documents, history);
+    handlers.onSources(result.sources);
+    handlers.onDelta(result.answer);
+    handlers.onDone();
+    return;
+  }
+
+  const response = await fetch("/api/chat/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question,
+      document_ids: documents.map((document) => document.id)
+    })
+  });
+  if (!response.ok || !response.body) {
+    throw new Error(await errorMessage(response));
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let finished = false;
+
+  const handle = (line: string) => {
+    const event = JSON.parse(line) as StreamEvent;
+    if (event.type === "sources") handlers.onSources(event.sources);
+    else if (event.type === "delta") handlers.onDelta(event.text);
+    else if (event.type === "done") {
+      finished = true;
+      handlers.onDone(event.cited);
+    } else throw new Error(event.detail);
+  };
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+    lines.filter((line) => line.trim()).forEach(handle);
+  }
+  if (buffer.trim()) handle(buffer);
+  if (!finished) throw new Error("Die Verbindung wurde unterbrochen.");
+}
+
 export function isDemoMode(): boolean {
   return DEMO_MODE;
 }

@@ -1,15 +1,26 @@
+import json
+import logging
+from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Response, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from legal_rag_chatbot.evaluation.dataset import load_corpus
 from legal_rag_chatbot.ingestion.extract import ExtractionError
-from legal_rag_chatbot.llm.chat import answer_with_sources
+from legal_rag_chatbot.llm.chat import (
+    Answer,
+    Source,
+    answer_with_sources,
+    prepare_answer,
+    stream_answer,
+)
 from legal_rag_chatbot.rag import session
+
+logger = logging.getLogger(__name__)
 
 EXCERPT_CHARS = 300
 PDF_DIR = Path(__file__).resolve().parents[2] / "data" / "raw" / "pdf"
@@ -97,22 +108,54 @@ def chat(request: ChatRequest) -> ChatResponse:
     answer = answer_with_sources(
         request.question, uploaded_document_ids=request.document_ids
     )
-    titles = document_titles()
-    sources = [
-        SourceOut(
-            number=source.number,
-            documentId=source.document_id or "",
-            documentName=(
-                source.document_name
-                or (
-                    f"{source.document_id} – {titles[source.document_id]}"
-                    if source.document_id in titles
-                    else "Unbekanntes Dokument"
-                )
-            ),
-            excerpt=source.text[:EXCERPT_CHARS],
-            page=source.page,
-        )
-        for source in answer.cited_sources()
-    ]
+    sources = [_source_out(source) for source in answer.cited_sources()]
     return ChatResponse(answer=answer.text, sources=sources)
+
+
+@app.post("/api/chat/stream")
+def chat_stream(request: ChatRequest) -> StreamingResponse:
+    """Stream the answer as NDJSON events: sources, delta (repeated), then done or error."""
+    prepared = prepare_answer(
+        request.question, uploaded_document_ids=request.document_ids
+    )
+
+    def events() -> Iterator[str]:
+        candidates = [
+            _source_out(s).model_dump(exclude_none=True) for s in prepared.sources
+        ]
+        yield _event("sources", sources=candidates)
+        parts: list[str] = []
+        try:
+            for delta in stream_answer(prepared):
+                parts.append(delta)
+                yield _event("delta", text=delta)
+        except Exception:
+            logger.exception("Streaming the answer failed")
+            yield _event("error", detail="Die Antwort konnte nicht erstellt werden.")
+            return
+        answer = Answer(text="".join(parts), sources=prepared.sources)
+        yield _event("done", cited=[s.number for s in answer.cited_sources()])
+
+    return StreamingResponse(events(), media_type="application/x-ndjson")
+
+
+def _event(kind: str, **data: object) -> str:
+    return json.dumps({"type": kind, **data}, ensure_ascii=False) + "\n"
+
+
+def _source_out(source: Source) -> SourceOut:
+    titles = document_titles()
+    return SourceOut(
+        number=source.number,
+        documentId=source.document_id or "",
+        documentName=(
+            source.document_name
+            or (
+                f"{source.document_id} – {titles[source.document_id]}"
+                if source.document_id in titles
+                else "Unbekanntes Dokument"
+            )
+        ),
+        excerpt=source.text[:EXCERPT_CHARS],
+        page=source.page,
+    )
