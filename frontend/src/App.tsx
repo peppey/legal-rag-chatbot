@@ -225,6 +225,10 @@ export default function App() {
       content: text
     };
 
+    // The welcome text and unfinished answers are not part of the conversation.
+    const history = messages.filter(
+      (m) => m.id !== initialMessage.id && !m.streaming && m.content
+    );
     const nextMessages = [...messages, userMessage];
     const assistantId = crypto.randomUUID();
     setMessages([
@@ -241,7 +245,7 @@ export default function App() {
       );
 
     try {
-      await askQuestionStream(text, documents, nextMessages, {
+      await askQuestionStream(text, documents, history, {
         onSources: (sources) => update((m) => ({ ...m, sources })),
         onDelta: (delta) => update((m) => ({ ...m, content: m.content + delta })),
         onDone: (cited) =>

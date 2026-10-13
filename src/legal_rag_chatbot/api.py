@@ -3,6 +3,7 @@ import logging
 from collections.abc import Iterator
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Response, UploadFile
@@ -14,6 +15,7 @@ from legal_rag_chatbot.ingestion.extract import ExtractionError
 from legal_rag_chatbot.llm.chat import (
     Answer,
     Source,
+    Turn,
     answer_with_sources,
     prepare_answer,
     stream_answer,
@@ -28,9 +30,18 @@ PDF_DIR = Path(__file__).resolve().parents[2] / "data" / "raw" / "pdf"
 app = FastAPI(title="legal-rag-chatbot")
 
 
+class HistoryMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=50_000)
+
+
 class ChatRequest(BaseModel):
     question: str = Field(min_length=1)
     document_ids: list[str] = Field(default_factory=list)
+    history: list[HistoryMessage] = Field(default_factory=list, max_length=100)
+
+    def turns(self) -> list[Turn]:
+        return [Turn(m.role, m.content) for m in self.history]
 
 
 class SourceOut(BaseModel):
@@ -106,7 +117,9 @@ def document_file(document_id: str) -> Response:
 @app.post("/api/chat", response_model_exclude_none=True)
 def chat(request: ChatRequest) -> ChatResponse:
     answer = answer_with_sources(
-        request.question, uploaded_document_ids=request.document_ids
+        request.question,
+        uploaded_document_ids=request.document_ids,
+        history=request.turns(),
     )
     sources = [_source_out(source) for source in answer.cited_sources()]
     return ChatResponse(answer=answer.text, sources=sources)
@@ -116,7 +129,9 @@ def chat(request: ChatRequest) -> ChatResponse:
 def chat_stream(request: ChatRequest) -> StreamingResponse:
     """Stream the answer as NDJSON events: sources, delta (repeated), then done or error."""
     prepared = prepare_answer(
-        request.question, uploaded_document_ids=request.document_ids
+        request.question,
+        uploaded_document_ids=request.document_ids,
+        history=request.turns(),
     )
 
     def events() -> Iterator[str]:

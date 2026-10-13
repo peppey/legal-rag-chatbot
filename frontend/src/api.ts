@@ -152,7 +152,8 @@ export async function askQuestionStream(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       question,
-      document_ids: documents.map((document) => document.id)
+      document_ids: documents.map((document) => document.id),
+      history: history.map(({ role, content }) => ({ role, content }))
     })
   });
   if (!response.ok || !response.body) {

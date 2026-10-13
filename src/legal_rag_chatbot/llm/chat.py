@@ -1,3 +1,4 @@
+import re
 from collections.abc import Iterator, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
@@ -106,6 +107,31 @@ RERANK_SYSTEM_PROMPT = (
     + CITATION_INSTRUCTION
 )
 
+REWRITE_PROMPT = """
+Du formulierst Folgefragen eines Chats um, damit eine Dokumentensuche sie ohne
+den Gesprächsverlauf versteht.
+
+Gib die letzte Frage als eigenständige Frage zurück. Löse Verweise wie "sie",
+"das", "dort" oder "der Mandant" mit Namen, Aktenzeichen und Daten aus dem
+Verlauf auf. Beantworte die Frage nicht und ändere ihre Bedeutung nicht.
+Begriffe wie "dieses Dokument" oder "die Datei" bleiben unverändert. Ist die
+Frage schon eigenständig, gib sie unverändert zurück.
+
+Gib nur die Frage aus, ohne Erklärung.
+"""
+# Only the latest turns matter for resolving references, and answers can be long.
+HISTORY_TURNS = 6
+HISTORY_TURN_CHARS = 1500
+CITATION_MARKER = re.compile(r"\s?\[\d+\]")
+
+
+@dataclass
+class Turn:
+    """One earlier chat message; role is "user" or "assistant"."""
+
+    role: str
+    content: str
+
 
 @dataclass
 class Source:
@@ -146,17 +172,42 @@ class PreparedAnswer:
         )
 
 
+def standalone_question(question: str, history: Sequence[Turn]) -> str:
+    """Rewrite a follow-up question so that it is understandable without the chat history."""
+    turns = history[-HISTORY_TURNS:]
+    if not turns:
+        return question
+    transcript = "\n".join(
+        f"{'Nutzer' if turn.role == 'user' else 'Assistent'}: "
+        f"{CITATION_MARKER.sub('', turn.content)[:HISTORY_TURN_CHARS]}"
+        for turn in turns
+    )
+    response = genai_client().models.generate_content(
+        model=MODEL,
+        contents=f"Gesprächsverlauf:\n{transcript}\n\nLetzte Frage: {question}",
+        config=types.GenerateContentConfig(
+            system_instruction=REWRITE_PROMPT,
+            temperature=0,
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
+        ),
+    )
+    return (response.text or "").strip() or question
+
+
 def prepare_answer(
     question: str,
     retrieve_k: int = RETRIEVE_K,
     context_k: int = CONTEXT_K,
     uploaded_document_ids: Sequence[str] = (),
+    history: Sequence[Turn] = (),
 ) -> PreparedAnswer:
     """Retrieve and rerank retrieve_k chunks and collect the best context_k as excerpts.
 
     Excerpts of the given uploaded session documents are added in front of the corpus
-    excerpts, they are searched separately and never part of the RAG corpus.
+    excerpts, they are searched separately and never part of the RAG corpus. Follow-up
+    questions are rewritten with the chat history first, so that the search finds them.
     """
+    question = standalone_question(question, history)
     with ThreadPoolExecutor(max_workers=1) as pool:
         corpus_search = pool.submit(
             fetch_contexts,
@@ -203,9 +254,12 @@ def answer_with_sources(
     retrieve_k: int = RETRIEVE_K,
     context_k: int = CONTEXT_K,
     uploaded_document_ids: Sequence[str] = (),
+    history: Sequence[Turn] = (),
 ) -> Answer:
     """Retrieve and rerank retrieve_k chunks, then answer from the best context_k."""
-    prepared = prepare_answer(question, retrieve_k, context_k, uploaded_document_ids)
+    prepared = prepare_answer(
+        question, retrieve_k, context_k, uploaded_document_ids, history
+    )
     response = genai_client().models.generate_content(
         model=MODEL, contents=prepared.contents, config=prepared.config
     )
