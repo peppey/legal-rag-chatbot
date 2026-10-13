@@ -14,6 +14,8 @@ MODEL = "gemini-2.5-flash"
 RETRIEVE_K = 20
 CONTEXT_K = 5
 UPLOAD_CONTEXT_K = 5
+# Uploads up to this size are passed in full, which also lets "fasse das Dokument zusammen" work.
+UPLOAD_FULL_TEXT_WORDS = 8000
 RANKER_MODEL = "semantic-ranker-512@latest"
 
 CORPUS_NAME = (
@@ -82,6 +84,9 @@ Auszüge, die mit "Hochgeladenes Dokument" beginnen, stammen aus Dateien, die
 der Nutzer in dieser Sitzung hochgeladen hat. Sie gehören nicht zu den Akten
 der Kanzlei. Kennzeichne in der Antwort, ob eine Information aus einem
 hochgeladenen Dokument oder aus den Akten stammt.
+
+Bezieht sich die Frage auf "dieses Dokument", "die Datei" oder Ähnliches ohne
+nähere Angabe, sind die hochgeladenen Dokumente gemeint, nicht die Akten.
 """
 
 RERANK_SYSTEM_PROMPT = (
@@ -133,7 +138,9 @@ def answer_with_sources(
         ranker="service",
         ranker_model=RANKER_MODEL,
     )[:context_k]
-    hits = session.store.search(question, uploaded_document_ids, UPLOAD_CONTEXT_K)
+    hits = session.store.full_text(
+        uploaded_document_ids, UPLOAD_FULL_TEXT_WORDS
+    ) or session.store.search(question, uploaded_document_ids, UPLOAD_CONTEXT_K)
 
     sources = [
         Source(

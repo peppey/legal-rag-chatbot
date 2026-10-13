@@ -26,3 +26,13 @@ def test_search_ignores_unknown_and_removed_documents(embedder) -> None:
     assert store.remove(document.id)
     assert store.search("Miete", [document.id], top_k=3) == []
     assert not store.remove(document.id)
+
+
+def test_full_text_returns_all_chunks_only_within_word_limit(embedder) -> None:
+    store = SessionStore(embedder=embedder)
+    document = store.add("miete.txt", b"Die Miete betraegt 900 Euro.")
+
+    assert [h.text for h in store.full_text([document.id], max_words=100)] == [
+        "Die Miete betraegt 900 Euro."
+    ]
+    assert store.full_text([document.id], max_words=3) == []

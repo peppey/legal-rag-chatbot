@@ -111,6 +111,20 @@ class SessionStore:
         with self._lock:
             return self._documents.pop(document_id, None) is not None
 
+    def full_text(
+        self, document_ids: Iterable[str], max_words: int
+    ) -> list[SessionHit]:
+        """Return all chunks of the given uploads, or [] if they exceed max_words together."""
+        documents = [d for i in dict.fromkeys(document_ids) if (d := self.get(i))]
+        words = sum(len(c.text.split()) for d in documents for c in d.chunks)
+        if words > max_words:
+            return []
+        return [
+            SessionHit(d.id, d.name, c.page, c.text, score=1.0)
+            for d in documents
+            for c in d.chunks
+        ]
+
     def search(
         self, question: str, document_ids: Iterable[str], top_k: int
     ) -> list[SessionHit]:
