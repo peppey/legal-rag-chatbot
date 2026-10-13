@@ -19,13 +19,26 @@ async function request<T>(
   const response = await fetch(path, init);
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(
-      `API-Fehler (${response.status}): ${detail || response.statusText}`
-    );
+    throw new Error(await errorMessage(response));
   }
 
   return response.json() as Promise<T>;
+}
+
+async function errorMessage(response: Response): Promise<string> {
+  const body = await response.text();
+  try {
+    const { detail } = JSON.parse(body);
+    if (typeof detail === "string") return detail;
+  } catch {
+    // not JSON, fall through to the raw text
+  }
+  return `API-Fehler (${response.status}): ${body || response.statusText}`;
+}
+
+export async function deleteDocument(id: string): Promise<void> {
+  if (DEMO_MODE) return;
+  await fetch(`/api/documents/${id}`, { method: "DELETE" });
 }
 
 export async function uploadDocument(file: File): Promise<DocumentItem> {

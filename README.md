@@ -112,6 +112,8 @@ npm run dev
 
 `npm run build` creates a production build in `frontend/dist/`.
 
+Documents can be added by drag and drop onto the page or with the "Dokumente hinzufügen" button (PDF, DOCX, TXT, up to 20 MB each, several at once). Uploads are chunked with the same logic as the corpus and embedded with `text-embedding-005` into an in-memory store ([session.py](src/legal_rag_chatbot/rag/session.py)). The chat searches the uploads that are listed in the sidebar in addition to the RAG corpus and marks their excerpts as uploaded documents. Uploads are never written to Cloud Storage or imported into the corpus, and they are lost when the backend restarts. Scanned PDFs without a text layer are rejected.
+
 ### PDF export and OCR
 
 `export_pdfs` renders every document of the raw JSONL as a PDF and can be run repeatedly. `run_ocr` sends the PDFs to Google Cloud Document AI (Enterprise Document OCR, German language hint) and writes one JSON file per PDF to `data/preprocessed/`. Enable the API once per project:

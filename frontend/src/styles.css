@@ -646,6 +646,7 @@ textarea:focus-visible {
 
 .error-message span {
   flex: 1;
+  white-space: pre-line;
 }
 
 .error-message button {

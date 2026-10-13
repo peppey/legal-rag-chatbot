@@ -20,7 +20,7 @@ import {
   ExternalLink
 } from "lucide-react";
 
-import { askQuestion, isDemoMode, uploadDocument } from "./api";
+import { askQuestion, deleteDocument, isDemoMode, uploadDocument } from "./api";
 import type { ChatMessage, DocumentItem, Source } from "./types";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -40,8 +40,9 @@ const formatSize = (bytes: number) => {
 const initialMessage: ChatMessage = {
   id: "welcome",
   role: "assistant",
-  content:
-    "Hallo! Ich bin dein Legal RAG Assistant. Lade links Dokumente hoch und stelle anschließend eine Frage dazu. Im aktuellen Demo-Modus sind Antworten noch Beispiele und keine echte Dokumentenanalyse."
+  content: isDemoMode()
+    ? "Hallo! Ich bin dein Legal RAG Assistant. Lade links Dokumente hoch und stelle anschließend eine Frage dazu. Im aktuellen Demo-Modus sind Antworten noch Beispiele und keine echte Dokumentenanalyse."
+    : "Hallo! Ich bin dein Legal RAG Assistant. Du kannst Fragen zu den Akten der Kanzlei stellen. Hochgeladene Dokumente (links) werden zusätzlich durchsucht, gelten nur für diese Sitzung und landen nicht in den Akten."
 };
 
 export default function App() {
@@ -71,17 +72,26 @@ export default function App() {
     setIsUploading(true);
 
     try {
-      const uploaded = await Promise.all(
+      const results = await Promise.allSettled(
         acceptedFiles.map((file) => uploadDocument(file))
       );
-
-      setDocuments((current) => [...uploaded, ...current]);
-      setSelectedDocumentId((current) => current ?? uploaded[0].id);
-      setPageNumber(1);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Upload fehlgeschlagen."
+      const uploaded = results.flatMap((r) =>
+        r.status === "fulfilled" ? [r.value] : []
       );
+      const failures = results.flatMap((r, index) =>
+        r.status === "rejected"
+          ? [`${acceptedFiles[index].name}: ${
+              r.reason instanceof Error ? r.reason.message : "Upload fehlgeschlagen."
+            }`]
+          : []
+      );
+
+      if (uploaded.length) {
+        setDocuments((current) => [...uploaded, ...current]);
+        setSelectedDocumentId((current) => current ?? uploaded[0].id);
+        setPageNumber(1);
+      }
+      if (failures.length) setError(failures.join("\n"));
     } finally {
       setIsUploading(false);
     }
@@ -89,6 +99,12 @@ export default function App() {
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
+    onDropRejected: (rejections) =>
+      setError(
+        `Nicht unterstützt: ${rejections
+          .map((rejection) => rejection.file.name)
+          .join(", ")}. Erlaubt sind PDF, DOCX und TXT.`
+      ),
     noClick: true,
     multiple: true,
     accept: {
@@ -107,6 +123,7 @@ export default function App() {
     }
 
     setDocuments((current) => current.filter((doc) => doc.id !== id));
+    void deleteDocument(id);
 
     if (selectedDocumentId === id) {
       const replacement = documents.find((doc) => doc.id !== id);

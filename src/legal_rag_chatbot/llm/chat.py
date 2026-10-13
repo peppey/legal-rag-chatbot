@@ -1,8 +1,10 @@
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from google import genai
 from google.genai import types
 
+from legal_rag_chatbot.rag import session
 from legal_rag_chatbot.rag.query import fetch_contexts, map_chunk_to_document
 
 PROJECT_ID = "legal-rag-chatbot"
@@ -11,6 +13,7 @@ MODEL = "gemini-2.5-flash"
 
 RETRIEVE_K = 20
 CONTEXT_K = 5
+UPLOAD_CONTEXT_K = 5
 RANKER_MODEL = "semantic-ranker-512@latest"
 
 CORPUS_NAME = (
@@ -74,6 +77,13 @@ Klammern, z. B. [1] oder [2][3]. Verwende nur Nummern der bereitgestellten
 Auszüge und zitiere nichts, was dort nicht steht.
 """
 
+UPLOAD_INSTRUCTION = """
+Auszüge, die mit "Hochgeladenes Dokument" beginnen, stammen aus Dateien, die
+der Nutzer in dieser Sitzung hochgeladen hat. Sie gehören nicht zu den Akten
+der Kanzlei. Kennzeichne in der Antwort, ob eine Information aus einem
+hochgeladenen Dokument oder aus den Akten stammt.
+"""
+
 RERANK_SYSTEM_PROMPT = (
     SYSTEM_PROMPT.replace(
         "die aus dem\nRAG-Corpus abgerufen werden",
@@ -91,6 +101,9 @@ class Source:
     document_id: str | None
     source_uri: str | None
     text: str
+    # Set only for excerpts of uploaded session documents.
+    document_name: str | None = None
+    page: int | None = None
 
 
 @dataclass
@@ -104,33 +117,61 @@ class Answer:
 
 
 def answer_with_sources(
-    question: str, retrieve_k: int = RETRIEVE_K, context_k: int = CONTEXT_K
+    question: str,
+    retrieve_k: int = RETRIEVE_K,
+    context_k: int = CONTEXT_K,
+    uploaded_document_ids: Sequence[str] = (),
 ) -> Answer:
-    """Retrieve and rerank retrieve_k chunks, then answer from the best context_k."""
+    """Retrieve and rerank retrieve_k chunks, then answer from the best context_k.
+
+    Excerpts of the given uploaded session documents are added in front of the corpus
+    excerpts, they are searched separately and never part of the RAG corpus.
+    """
     contexts = fetch_contexts(
         question,
         top_k=retrieve_k,
         ranker="service",
         ranker_model=RANKER_MODEL,
     )[:context_k]
-    excerpts = "\n\n".join(f"[{i}] {c.text}" for i, c in enumerate(contexts, start=1))
+    hits = session.store.search(question, uploaded_document_ids, UPLOAD_CONTEXT_K)
 
-    client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
-    response = client.models.generate_content(
-        model=MODEL,
-        contents=f"Dokumentauszüge:\n\n{excerpts}\n\nFrage: {question}",
-        config=types.GenerateContentConfig(system_instruction=RERANK_SYSTEM_PROMPT),
-    )
     sources = [
+        Source(
+            number=number,
+            document_id=hit.document_id,
+            source_uri=None,
+            text=hit.text,
+            document_name=hit.document_name,
+            page=hit.page,
+        )
+        for number, hit in enumerate(hits, start=1)
+    ]
+    sources += [
         Source(
             number=number,
             document_id=map_chunk_to_document(c.text),
             source_uri=c.source_uri,
             text=c.text,
         )
-        for number, c in enumerate(contexts, start=1)
+        for number, c in enumerate(contexts, start=len(hits) + 1)
     ]
+    excerpts = "\n\n".join(f"[{s.number}] {_excerpt_label(s)}{s.text}" for s in sources)
+
+    system_prompt = RERANK_SYSTEM_PROMPT + (UPLOAD_INSTRUCTION if hits else "")
+    client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=f"Dokumentauszüge:\n\n{excerpts}\n\nFrage: {question}",
+        config=types.GenerateContentConfig(system_instruction=system_prompt),
+    )
     return Answer(text=response.text or "", sources=sources)
+
+
+def _excerpt_label(source: Source) -> str:
+    if source.document_name is None:
+        return ""
+    page = f", Seite {source.page}" if source.page else ""
+    return f"Hochgeladenes Dokument „{source.document_name}“{page}: "
 
 
 def answer_question(
