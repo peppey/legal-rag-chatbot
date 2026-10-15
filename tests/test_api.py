@@ -215,3 +215,21 @@ def test_chat_stream_reports_an_exhausted_quota_before_and_during_streaming(
     response = client.post("/api/chat/stream", json={"question": "x"})
     events = [json.loads(line) for line in response.text.splitlines()]
     assert events[-1] == {"type": "error", "detail": api.BUSY_MESSAGE}
+
+
+def test_chat_thinking_defaults_to_off_and_is_passed_on(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    received = []
+
+    def fake_answer(question, **kwargs):
+        received.append(kwargs["thinking"])
+        return Answer(text="ok")
+
+    monkeypatch.setattr(api, "answer_with_sources", fake_answer)
+    client = TestClient(api.app)
+
+    client.post("/api/chat", json={"question": "x"})
+    client.post("/api/chat", json={"question": "x", "thinking": True})
+
+    assert received == [False, True]

@@ -152,11 +152,23 @@ type StreamEvent =
   | { type: "done"; cited: number[] }
   | { type: "error"; detail: string };
 
+export type StreamOptions = {
+  // Sent to the backend: the model thinks longer before it answers.
+  thinking?: boolean;
+  // Aborting ends the stream and the backend stops generating.
+  signal?: AbortSignal;
+};
+
+export function isAbort(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
+}
+
 export async function askQuestionStream(
   question: string,
   documents: DocumentItem[],
   history: ChatMessage[],
-  handlers: StreamHandlers
+  handlers: StreamHandlers,
+  options: StreamOptions = {}
 ): Promise<void> {
   if (DEMO_MODE) {
     const result = await askQuestion(question, documents, history);
@@ -169,8 +181,10 @@ export async function askQuestionStream(
   const response = await authFetch("/api/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal: options.signal,
     body: JSON.stringify({
       question,
+      thinking: options.thinking ?? false,
       document_ids: documents.map((document) => document.id),
       history: history.map(({ role, content }) => ({ role, content }))
     })

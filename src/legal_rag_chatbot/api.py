@@ -62,6 +62,7 @@ class ChatRequest(BaseModel):
     document_ids: list[str] = Field(default_factory=list)
     history: list[HistoryMessage] = Field(default_factory=list, max_length=100)
     search_mode: SearchMode = "auto"
+    thinking: bool = False
 
     def turns(self) -> list[Turn]:
         return [Turn(m.role, m.content) for m in self.history]
@@ -152,6 +153,7 @@ def chat(
         uploaded_document_ids=request.document_ids,
         search_mode=request.search_mode,
         history=request.turns(),
+        thinking=request.thinking,
         access=access,
     )
     sources = [_source_out(source) for source in answer.cited_sources()]
@@ -168,6 +170,7 @@ def chat_stream(
         uploaded_document_ids=request.document_ids,
         search_mode=request.search_mode,
         history=request.turns(),
+        thinking=request.thinking,
         access=access,
     )
 

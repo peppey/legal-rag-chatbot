@@ -20,12 +20,15 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
-  LogOut
+  LogOut,
+  Brain,
+  Square
 } from "lucide-react";
 
 import {
   askQuestionStream,
   deleteDocument,
+  isAbort,
   isDemoMode,
   openFile,
   pdfSource,
@@ -130,6 +133,10 @@ export default function App({
   const [question, setQuestion] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isAsking, setIsAsking] = useState(false);
+  const [thinking, setThinking] = useState(
+    () => localStorage.getItem("thinking") === "on"
+  );
+  const abortRef = useRef<AbortController | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [leftOpen, setLeftOpen] = useState(() => !window.matchMedia(MOBILE_QUERY).matches);
   const [rightOpen, setRightOpen] = useState(() => !window.matchMedia(MOBILE_QUERY).matches);
@@ -294,6 +301,8 @@ export default function App({
     setQuestion("");
     setIsAsking(true);
     setError(null);
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     const update = (change: (message: ChatMessage) => ChatMessage) =>
       setMessages((current) =>
@@ -319,14 +328,27 @@ export default function App({
                   )
                 : m.sources
             }))
-        }
+        },
+        { thinking, signal: controller.signal }
       );
     } catch (err) {
-      update((m) => ({ ...m, streaming: false }));
-      setError(
-        err instanceof Error ? err.message : "Die Anfrage ist fehlgeschlagen."
-      );
+      if (isAbort(err)) {
+        // Keep what was written; only sources that the text already cites stay.
+        update((m) => ({
+          ...m,
+          streaming: false,
+          sources: m.sources?.filter(
+            (s) => s.number !== undefined && m.content.includes(`[${s.number}]`)
+          )
+        }));
+      } else {
+        update((m) => ({ ...m, streaming: false }));
+        setError(
+          err instanceof Error ? err.message : "Die Anfrage ist fehlgeschlagen."
+        );
+      }
     } finally {
+      abortRef.current = null;
       // An answer that failed before the first token leaves no empty bubble behind.
       setMessages((current) =>
         current.filter((m) => m.id !== assistantId || m.content)
@@ -562,10 +584,36 @@ export default function App({
               />
               <div className="composer-bottom">
                 <span>Enter zum Senden · Shift + Enter für neue Zeile</span>
-                <button type="submit" disabled={!question.trim() || isAsking} className="send-button">
-                  <Send size={15} />
-                  Senden
-                </button>
+                <div className="composer-actions">
+                  <button
+                    type="button"
+                    className={`toggle-button ${thinking ? "on" : ""}`}
+                    aria-pressed={thinking}
+                    title="Das Modell denkt länger nach, die Antwort dauert dann etwas länger."
+                    onClick={() => {
+                      localStorage.setItem("thinking", thinking ? "off" : "on");
+                      setThinking(!thinking);
+                    }}
+                  >
+                    <Brain size={14} />
+                    Nachdenken
+                  </button>
+                  {isAsking ? (
+                    <button
+                      type="button"
+                      className="send-button stop-button"
+                      onClick={() => abortRef.current?.abort()}
+                    >
+                      <Square size={13} />
+                      Stopp
+                    </button>
+                  ) : (
+                    <button type="submit" disabled={!question.trim()} className="send-button">
+                      <Send size={15} />
+                      Senden
+                    </button>
+                  )}
+                </div>
               </div>
             </form>
             <p className="disclaimer">Antworten können Fehler enthalten. Prüfe wichtige Aussagen anhand der Originalquellen.</p>

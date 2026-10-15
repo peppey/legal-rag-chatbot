@@ -270,3 +270,23 @@ def test_genai_client_retries_quota_errors(monkeypatch: pytest.MonkeyPatch) -> N
     retry = captured["http_options"].retry_options
     assert 429 in retry.http_status_codes
     assert retry.attempts > 1
+
+
+def test_thinking_mode_raises_the_thinking_budget() -> None:
+    off = chat.PreparedAnswer(sources=[], system_prompt="", contents="")
+    on = chat.PreparedAnswer(sources=[], system_prompt="", contents="", thinking=True)
+
+    assert off.config.thinking_config.thinking_budget == chat.THINKING_BUDGET
+    assert on.config.thinking_config.thinking_budget == chat.THINKING_BUDGET_ON
+
+
+def test_prepare_answer_passes_the_thinking_flag_on(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(chat, "fetch_contexts", lambda q, **kwargs: [])
+
+    prepared = chat.prepare_answer(
+        "Wie hoch ist die Miete?", thinking=True, access=SYSTEM_ACCESS
+    )
+
+    assert prepared.thinking

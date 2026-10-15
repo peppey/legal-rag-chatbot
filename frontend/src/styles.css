@@ -1097,3 +1097,44 @@ button.citation:hover {
   border-radius: 7px;
   font-size: 11px;
 }
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.toggle-button {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: #62716a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.toggle-button.on {
+  background: var(--green-light);
+  border-color: #c5d6cc;
+  color: var(--green);
+}
+
+.stop-button {
+  background: #8d4944;
+}
+
+.send-button.stop-button:hover:not(:disabled) {
+  background: #a3544e;
+}
+
+@media (max-width: 800px) {
+  .toggle-button {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}

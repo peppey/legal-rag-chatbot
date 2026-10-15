@@ -26,6 +26,8 @@ LOCATION = "europe-west3"
 MODEL = "gemini-2.5-flash"
 # Thinking adds about two seconds per answer; the answers are extractive and cited.
 THINKING_BUDGET = 0
+# With the thinking mode on the model decides how much to think (-1 = dynamic).
+THINKING_BUDGET_ON = -1
 # Resolves follow-up questions with the chat history before the search (see standalone_question).
 REWRITE_FOLLOW_UPS = True
 
@@ -236,12 +238,14 @@ class PreparedAnswer:
     system_prompt: str
     contents: str
     route: Route = Route.CORPUS
+    thinking: bool = False
 
     @property
     def config(self) -> types.GenerateContentConfig:
+        budget = THINKING_BUDGET_ON if self.thinking else THINKING_BUDGET
         return types.GenerateContentConfig(
             system_instruction=self.system_prompt,
-            thinking_config=types.ThinkingConfig(thinking_budget=THINKING_BUDGET),
+            thinking_config=types.ThinkingConfig(thinking_budget=budget),
         )
 
 
@@ -277,6 +281,7 @@ def prepare_answer(
     uploaded_document_ids: Sequence[str] = (),
     history: Sequence[Turn] = (),
     search_mode: SearchMode = "corpus",
+    thinking: bool = False,
     *,
     access: Access,
 ) -> PreparedAnswer:
@@ -359,6 +364,7 @@ def prepare_answer(
         system_prompt=RERANK_SYSTEM_PROMPT + (UPLOAD_INSTRUCTION if hits else ""),
         contents=f"Dokumentauszüge:\n\n{excerpts}\n\nFrage: {question}",
         route=route,
+        thinking=thinking,
     )
 
 
@@ -369,6 +375,7 @@ def answer_with_sources(
     uploaded_document_ids: Sequence[str] = (),
     history: Sequence[Turn] = (),
     search_mode: SearchMode = "corpus",
+    thinking: bool = False,
     *,
     access: Access,
 ) -> Answer:
@@ -380,6 +387,7 @@ def answer_with_sources(
         uploaded_document_ids,
         history,
         search_mode,
+        thinking,
         access=access,
     )
     response = genai_client().models.generate_content(
