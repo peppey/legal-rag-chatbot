@@ -104,17 +104,9 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const initialMessage: ChatMessage = {
-  id: "welcome",
-  role: "assistant",
-  content: isDemoMode()
-    ? "Hallo! Ich bin dein Legal RAG Assistant. Lade links Dokumente hoch und stelle anschließend eine Frage dazu. Im aktuellen Demo-Modus sind Antworten noch Beispiele und keine echte Dokumentenanalyse."
-    : "Hallo! Ich bin dein Legal RAG Assistant. Du kannst Fragen zu den Akten der Kanzlei stellen. Hochgeladene Dokumente (links) werden zusätzlich durchsucht, gelten nur für diese Sitzung und landen nicht in den Akten."
-};
-
 export default function App() {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
-  const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
     null
   );
@@ -260,10 +252,8 @@ export default function App() {
       content: text
     };
 
-    // The welcome text and unfinished answers are not part of the conversation.
-    const history = messages.filter(
-      (m) => m.id !== initialMessage.id && !m.streaming && m.content
-    );
+    // Unfinished answers are not part of the conversation.
+    const history = messages.filter((m) => !m.streaming && m.content);
     const nextMessages = [...messages, userMessage];
     const assistantId = crypto.randomUUID();
     setMessages([
@@ -330,7 +320,7 @@ export default function App() {
         <div className="brand">
           <div className="brand-mark"><ShieldCheck size={21} /></div>
           <div>
-            <div className="brand-title">Legal RAG Assistant</div>
+            <div className="brand-title">Kanzlei-Chatbot</div>
             <div className="brand-subtitle">Dokumente verstehen. Quellen nachvollziehen.</div>
           </div>
         </div>
