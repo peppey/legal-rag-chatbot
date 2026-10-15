@@ -147,6 +147,19 @@ uv run python -m legal_rag_chatbot.scripts.evaluate_answers --mode grounded --li
 
 Both scripts accept `--limit N` for a quick run, `--workers` and `--output` for the report path (default: `data/evaluation/results/`). The relevance labels belong to specific document contents. If you change the documents substantially, review the labels and re-import the corpus before comparing results with older reports.
 
+### Search routing
+
+Not every message needs a search of the RAG corpus. The chat endpoints take an optional `search_mode` (default `auto`):
+
+| Mode | Behaviour |
+|---|---|
+| `auto` | Greetings, thanks and questions about the assistant get a short answer without any search. Without uploads everything else searches the corpus. With uploads, one small model call decides between uploads, corpus or both (and rewrites follow-up questions in the same call). If that call fails, everything is searched. |
+| `corpus` | Always search the corpus, ignore uploads. Used by the evaluations, so their results stay comparable. |
+| `uploads` | Only the uploaded documents, falls back to the corpus if they yield nothing. |
+| `none` | No search. |
+
+The routing prompt (`route.md`) and the smalltalk prompt (`smalltalk.md`) are part of the versioned prompt set. The frontend does not send `search_mode` yet.
+
 ### Prompt versions
 
 The prompts (system, answer format, citations, uploads, query rewriting and the judge) are Markdown files in [src/legal_rag_chatbot/prompts/](src/legal_rag_chatbot/prompts/), one directory per version (`v1`, `v2`, ...). To change a prompt, copy the latest version directory, edit the copy and select it for a run:

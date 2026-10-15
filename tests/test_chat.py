@@ -119,3 +119,131 @@ def test_standalone_question_is_skipped_when_rewriting_is_disabled(
     monkeypatch.setattr(chat, "genai_client", fail)
 
     assert chat.standalone_question("Und dann?", [Turn("user", "Hallo")]) == "Und dann?"
+
+
+@pytest.mark.parametrize(
+    "question", ["Hallo", "Danke!", "Vielen Dank, tschüss", "Wer bist du?"]
+)
+def test_smalltalk_is_detected(question: str) -> None:
+    assert chat.is_smalltalk(question)
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Hallo, wie hoch ist die Miete in CASE-005?",
+        "Und hat sie das schon getan?",
+        "Danke, und wie hoch ist die Abfindung?",
+        "???",
+    ],
+)
+def test_real_questions_are_not_smalltalk(question: str) -> None:
+    assert not chat.is_smalltalk(question)
+
+
+def test_heuristic_route() -> None:
+    assert chat.heuristic_route("Hallo", has_uploads=True) is chat.Route.NONE
+    assert chat.heuristic_route("Wie hoch ist die Miete?", False) is chat.Route.CORPUS
+    assert chat.heuristic_route("Was steht in CASE-002?", True) is chat.Route.BOTH
+    assert chat.heuristic_route("Fasse das zusammen", True) is None
+
+
+def _fail(*args, **kwargs):
+    raise AssertionError("must not be called")
+
+
+def test_smalltalk_needs_no_search_and_no_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(chat, "fetch_contexts", _fail)
+    monkeypatch.setattr(chat, "genai_client", _fail)
+
+    prepared = chat.prepare_answer("Hallo", search_mode="auto")
+
+    assert prepared.route is chat.Route.NONE
+    assert prepared.sources == []
+    assert prepared.system_prompt == chat.SMALLTALK_SYSTEM_PROMPT
+    assert prepared.contents == "Hallo"
+
+
+def _hit(text: str = "Vertragstext"):
+    return SimpleNamespace(
+        document_id="upload-1", document_name="vertrag.txt", page=1, text=text
+    )
+
+
+def test_upload_route_skips_the_corpus_search(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(chat, "fetch_contexts", _fail)
+    monkeypatch.setattr(chat.session.store, "full_text", lambda ids, words: [_hit()])
+
+    prepared = chat.prepare_answer(
+        "Fasse das Dokument zusammen",
+        uploaded_document_ids=["upload-1"],
+        search_mode="uploads",
+    )
+
+    assert prepared.route is chat.Route.UPLOADS
+    assert [s.document_name for s in prepared.sources] == ["vertrag.txt"]
+    assert chat.UPLOAD_INSTRUCTION in prepared.system_prompt
+
+
+def test_upload_route_falls_back_to_the_corpus_without_hits(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    searched: list[str] = []
+    monkeypatch.setattr(chat.session.store, "full_text", lambda ids, words: [])
+    monkeypatch.setattr(chat.session.store, "search", lambda q, ids, k: [])
+    monkeypatch.setattr(
+        chat, "fetch_contexts", lambda q, **kwargs: searched.append(q) or []
+    )
+
+    chat.prepare_answer("Wie hoch ist die Miete?", search_mode="uploads")
+
+    assert searched == ["Wie hoch ist die Miete?"]
+
+
+def test_corpus_route_ignores_uploads(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(chat, "fetch_contexts", lambda q, **kwargs: [])
+    monkeypatch.setattr(chat.session.store, "full_text", _fail)
+    monkeypatch.setattr(chat.session.store, "search", _fail)
+
+    prepared = chat.prepare_answer(
+        "Wie hoch ist die Miete?",
+        uploaded_document_ids=["upload-1"],
+        search_mode="corpus",
+    )
+
+    assert prepared.route is chat.Route.CORPUS
+    assert chat.UPLOAD_INSTRUCTION not in prepared.system_prompt
+
+
+def test_decide_route_uses_the_model_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+    decision = chat.RouteDecision(
+        question="Fasse vertrag.txt zusammen", route="uploads"
+    )
+    client = SimpleNamespace(
+        models=SimpleNamespace(
+            generate_content=lambda **kwargs: SimpleNamespace(parsed=decision)
+        )
+    )
+    monkeypatch.setattr(chat, "genai_client", lambda: client)
+
+    question, route = chat.decide_route("Fasse das zusammen", [], ["vertrag.txt"])
+
+    assert route is chat.Route.UPLOADS
+    # Without history the question is kept, the model only picks the route.
+    assert question == "Fasse das zusammen"
+
+
+def test_decide_route_searches_everything_if_the_model_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def broken():
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(chat, "genai_client", broken)
+
+    assert chat.decide_route("Fasse das zusammen", [], ["a.txt"]) == (
+        "Fasse das zusammen",
+        chat.Route.BOTH,
+    )

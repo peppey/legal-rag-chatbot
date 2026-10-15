@@ -1,9 +1,13 @@
+import logging
 import re
 from collections.abc import Iterator, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from enum import Enum
+from typing import Literal
 
 from google.genai import types
+from pydantic import BaseModel
 
 from legal_rag_chatbot import prompts
 from legal_rag_chatbot.rag import session
@@ -12,6 +16,8 @@ from legal_rag_chatbot.rag.query import (
     genai_client,
     map_chunk_to_document,
 )
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
@@ -38,6 +44,8 @@ SYSTEM_PROMPT = f"\n{prompts.get('system')}\n\n{prompts.get('format')}\n"
 CITATION_INSTRUCTION = f"\n{prompts.get('citation')}\n"
 UPLOAD_INSTRUCTION = f"\n{prompts.get('upload')}\n"
 REWRITE_PROMPT = f"\n{prompts.get('rewrite')}\n"
+ROUTE_PROMPT = f"\n{prompts.get('route')}\n"
+SMALLTALK_SYSTEM_PROMPT = f"\n{prompts.get('smalltalk')}\n"
 
 _CORPUS_WORDING = "die aus dem\nRAG-Corpus abgerufen werden"
 assert _CORPUS_WORDING in SYSTEM_PROMPT, (
@@ -80,6 +88,108 @@ def needs_rewrite(question: str) -> bool:
     )
 
 
+class Route(str, Enum):
+    """Which sources a question is answered from."""
+
+    NONE = "none"
+    UPLOADS = "uploads"
+    CORPUS = "corpus"
+    BOTH = "both"
+
+
+# "auto" decides per question, the others force a route. Evaluations use "corpus".
+SearchMode = Literal["auto", "none", "uploads", "corpus"]
+
+SMALLTALK_WORDS = frozenset(
+    "hallo hi hey moin servus guten tag morgen abend danke dankeschön schön sehr "
+    "vielen herzlichen dank tschüss tschüs wiedersehen ciao ok okay alles klar "
+    "super prima gut verstanden perfekt gern gerne".split()
+)
+ASSISTANT_QUESTION = re.compile(
+    r"\b(?:wer bist du|was kannst du|was machst du|wie funktionierst du)\b",
+    re.IGNORECASE,
+)
+
+
+def is_smalltalk(question: str) -> bool:
+    """Greetings, thanks and questions about the assistant itself need no documents."""
+    if FILE_NUMBER.search(question):
+        return False
+    words = re.findall(r"[a-zäöüß]+", question.lower())
+    if not words:
+        return False
+    return all(w in SMALLTALK_WORDS for w in words) or (
+        len(words) <= 8 and bool(ASSISTANT_QUESTION.search(question))
+    )
+
+
+def heuristic_route(question: str, has_uploads: bool) -> Route | None:
+    """Route without a model call, or None if only the model can tell (uploads present)."""
+    if is_smalltalk(question):
+        return Route.NONE
+    if not has_uploads:
+        return Route.CORPUS
+    if FILE_NUMBER.search(question):
+        return Route.BOTH
+    return None
+
+
+class RouteDecision(BaseModel):
+    question: str
+    route: Literal["none", "uploads", "corpus", "both"]
+
+
+def decide_route(
+    question: str, history: "Sequence[Turn]", upload_names: Sequence[str]
+) -> tuple[str, Route]:
+    """One model call that picks the route and rewrites follow-up questions.
+
+    On any failure the question is answered from everything, which is the safe default.
+    """
+    turns = history[-HISTORY_TURNS:]
+    parts = [f"Hochgeladene Dokumente: {', '.join(upload_names) or '(keine)'}"]
+    if turns:
+        parts.append(f"Gesprächsverlauf:\n{_transcript(turns)}")
+    parts.append(f"Letzte Frage: {question}")
+    try:
+        response = genai_client().models.generate_content(
+            model=MODEL,
+            contents="\n\n".join(parts),
+            config=types.GenerateContentConfig(
+                system_instruction=ROUTE_PROMPT,
+                temperature=0,
+                response_mime_type="application/json",
+                response_schema=RouteDecision,
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
+            ),
+        )
+        decision = response.parsed
+        route = Route(decision.route)
+    except Exception:
+        logger.exception("Routing failed, searching all sources")
+        return question, Route.BOTH
+    rewrite = bool(turns) and REWRITE_FOLLOW_UPS and needs_rewrite(question)
+    return (decision.question.strip() or question if rewrite else question), route
+
+
+def resolve_route(
+    question: str,
+    history: "Sequence[Turn]",
+    uploaded_document_ids: Sequence[str],
+    search_mode: SearchMode,
+) -> tuple[str, Route]:
+    """Standalone question and route for a chat message."""
+    if search_mode != "auto":
+        return standalone_question(question, history), Route(search_mode)
+    route = heuristic_route(question, bool(uploaded_document_ids))
+    if route is None:
+        names = [d.name for i in uploaded_document_ids if (d := session.store.get(i))]
+        return decide_route(question, history, names)
+    if route is Route.NONE:
+        return question, route
+    return standalone_question(question, history), route
+
+
 @dataclass
 class Turn:
     """One earlier chat message; role is "user" or "assistant"."""
@@ -118,6 +228,7 @@ class PreparedAnswer:
     sources: list[Source]
     system_prompt: str
     contents: str
+    route: Route = Route.CORPUS
 
     @property
     def config(self) -> types.GenerateContentConfig:
@@ -127,19 +238,22 @@ class PreparedAnswer:
         )
 
 
+def _transcript(turns: Sequence[Turn]) -> str:
+    return "\n".join(
+        f"{'Nutzer' if turn.role == 'user' else 'Assistent'}: "
+        f"{CITATION_MARKER.sub('', turn.content)[:HISTORY_TURN_CHARS]}"
+        for turn in turns
+    )
+
+
 def standalone_question(question: str, history: Sequence[Turn]) -> str:
     """Rewrite a follow-up question so that it is understandable without the chat history."""
     turns = history[-HISTORY_TURNS:]
     if not REWRITE_FOLLOW_UPS or not turns or not needs_rewrite(question):
         return question
-    transcript = "\n".join(
-        f"{'Nutzer' if turn.role == 'user' else 'Assistent'}: "
-        f"{CITATION_MARKER.sub('', turn.content)[:HISTORY_TURN_CHARS]}"
-        for turn in turns
-    )
     response = genai_client().models.generate_content(
         model=MODEL,
-        contents=f"Gesprächsverlauf:\n{transcript}\n\nLetzte Frage: {question}",
+        contents=f"Gesprächsverlauf:\n{_transcript(turns)}\n\nLetzte Frage: {question}",
         config=types.GenerateContentConfig(
             system_instruction=REWRITE_PROMPT,
             temperature=0,
@@ -155,26 +269,51 @@ def prepare_answer(
     context_k: int = CONTEXT_K,
     uploaded_document_ids: Sequence[str] = (),
     history: Sequence[Turn] = (),
+    search_mode: SearchMode = "corpus",
 ) -> PreparedAnswer:
     """Retrieve and rerank retrieve_k chunks and collect the best context_k as excerpts.
 
     Excerpts of the given uploaded session documents are added in front of the corpus
     excerpts, they are searched separately and never part of the RAG corpus. Follow-up
     questions are rewritten with the chat history first, so that the search finds them.
+    The route (see resolve_route) decides which of the two searches run at all.
     """
-    question = standalone_question(question, history)
-    with ThreadPoolExecutor(max_workers=1) as pool:
-        corpus_search = pool.submit(
-            fetch_contexts,
-            question,
-            top_k=retrieve_k,
-            ranker="service",
-            ranker_model=RANKER_MODEL,
+    question, route = resolve_route(
+        question, history, uploaded_document_ids, search_mode
+    )
+    logger.info("Answering with route %s", route.value)
+    if route is Route.NONE:
+        return PreparedAnswer(
+            sources=[],
+            system_prompt=SMALLTALK_SYSTEM_PROMPT,
+            contents=question,
+            route=route,
         )
-        hits = session.store.full_text(
-            uploaded_document_ids, UPLOAD_FULL_TEXT_WORDS
-        ) or session.store.search(question, uploaded_document_ids, UPLOAD_CONTEXT_K)
-        contexts = corpus_search.result()[:context_k]
+
+    search_corpus = route in (Route.CORPUS, Route.BOTH)
+    search_uploads = route in (Route.UPLOADS, Route.BOTH)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+
+        def start_corpus_search():
+            return pool.submit(
+                fetch_contexts,
+                question,
+                top_k=retrieve_k,
+                ranker="service",
+                ranker_model=RANKER_MODEL,
+            )
+
+        corpus_search = start_corpus_search() if search_corpus else None
+        hits = (
+            session.store.full_text(uploaded_document_ids, UPLOAD_FULL_TEXT_WORDS)
+            or session.store.search(question, uploaded_document_ids, UPLOAD_CONTEXT_K)
+            if search_uploads
+            else []
+        )
+        if corpus_search is None and not hits:
+            # Nothing found in the uploads, so fall back to the corpus.
+            corpus_search = start_corpus_search()
+        contexts = corpus_search.result()[:context_k] if corpus_search else []
 
     sources = [
         Source(
@@ -201,6 +340,7 @@ def prepare_answer(
         sources=sources,
         system_prompt=RERANK_SYSTEM_PROMPT + (UPLOAD_INSTRUCTION if hits else ""),
         contents=f"Dokumentauszüge:\n\n{excerpts}\n\nFrage: {question}",
+        route=route,
     )
 
 
@@ -210,10 +350,11 @@ def answer_with_sources(
     context_k: int = CONTEXT_K,
     uploaded_document_ids: Sequence[str] = (),
     history: Sequence[Turn] = (),
+    search_mode: SearchMode = "corpus",
 ) -> Answer:
     """Retrieve and rerank retrieve_k chunks, then answer from the best context_k."""
     prepared = prepare_answer(
-        question, retrieve_k, context_k, uploaded_document_ids, history
+        question, retrieve_k, context_k, uploaded_document_ids, history, search_mode
     )
     response = genai_client().models.generate_content(
         model=MODEL, contents=prepared.contents, config=prepared.config

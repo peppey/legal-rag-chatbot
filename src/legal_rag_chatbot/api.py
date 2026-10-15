@@ -14,6 +14,7 @@ from legal_rag_chatbot.evaluation.dataset import load_corpus
 from legal_rag_chatbot.ingestion.extract import ExtractionError
 from legal_rag_chatbot.llm.chat import (
     Answer,
+    SearchMode,
     Source,
     Turn,
     answer_with_sources,
@@ -39,6 +40,7 @@ class ChatRequest(BaseModel):
     question: str = Field(min_length=1)
     document_ids: list[str] = Field(default_factory=list)
     history: list[HistoryMessage] = Field(default_factory=list, max_length=100)
+    search_mode: SearchMode = "auto"
 
     def turns(self) -> list[Turn]:
         return [Turn(m.role, m.content) for m in self.history]
@@ -119,6 +121,7 @@ def chat(request: ChatRequest) -> ChatResponse:
     answer = answer_with_sources(
         request.question,
         uploaded_document_ids=request.document_ids,
+        search_mode=request.search_mode,
         history=request.turns(),
     )
     sources = [_source_out(source) for source in answer.cited_sources()]
@@ -131,6 +134,7 @@ def chat_stream(request: ChatRequest) -> StreamingResponse:
     prepared = prepare_answer(
         request.question,
         uploaded_document_ids=request.document_ids,
+        search_mode=request.search_mode,
         history=request.turns(),
     )
 

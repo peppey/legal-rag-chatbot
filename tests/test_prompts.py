@@ -8,6 +8,8 @@ PROMPT_NAMES = [
     "citation",
     "upload",
     "rewrite",
+    "route",
+    "smalltalk",
     "judge",
     "judge_answerable",
     "judge_unanswerable",

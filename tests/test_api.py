@@ -146,3 +146,21 @@ def test_chat_passes_history_and_rejects_unknown_roles(
         client.post("/api/chat", json={"question": "x", "history": bad}).status_code
         == 422
     )
+
+
+def test_chat_search_mode_defaults_to_auto_and_is_validated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    received = {}
+
+    def fake_answer(question, **kwargs):
+        received.update(kwargs)
+        return Answer(text="ok")
+
+    monkeypatch.setattr(api, "answer_with_sources", fake_answer)
+    client = TestClient(api.app)
+
+    assert client.post("/api/chat", json={"question": "x"}).status_code == 200
+    assert received["search_mode"] == "auto"
+    response = client.post("/api/chat", json={"question": "x", "search_mode": "web"})
+    assert response.status_code == 422
