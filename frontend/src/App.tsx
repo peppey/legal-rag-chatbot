@@ -33,6 +33,20 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
+// Below this width the document list and the preview open as bottom sheets (see styles.css).
+const MOBILE_QUERY = "(max-width: 800px)";
+
+function useIsMobile(): boolean {
+  const [mobile, setMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_QUERY);
+    const update = () => setMobile(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return mobile;
+}
+
 // Turns [1] markers of the answer into buttons that open the cited source.
 function MessageText({
   content,
@@ -110,8 +124,29 @@ export default function App() {
   const [isUploading, setIsUploading] = useState(false);
   const [isAsking, setIsAsking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [leftOpen, setLeftOpen] = useState(true);
-  const [rightOpen, setRightOpen] = useState(true);
+  const [leftOpen, setLeftOpen] = useState(() => !window.matchMedia(MOBILE_QUERY).matches);
+  const [rightOpen, setRightOpen] = useState(() => !window.matchMedia(MOBILE_QUERY).matches);
+  const isMobile = useIsMobile();
+
+  // Only one bottom sheet fits on a phone, e.g. after rotating from a wide window.
+  useEffect(() => {
+    if (isMobile) setLeftOpen(false);
+  }, [isMobile]);
+
+  function openDocuments() {
+    setLeftOpen(true);
+    if (isMobile) setRightOpen(false);
+  }
+
+  function openPreview() {
+    setRightOpen(true);
+    if (isMobile) setLeftOpen(false);
+  }
+
+  function closeSheets() {
+    setLeftOpen(false);
+    setRightOpen(false);
+  }
 
   const selectedDocument = useMemo(
     () => documents.find((doc) => doc.id === selectedDocumentId) ?? null,
@@ -212,7 +247,7 @@ export default function App() {
     }
     setSelectedDocumentId(source.documentId);
     setPageNumber(source.page ?? 1);
-    setRightOpen(true);
+    openPreview();
   }
 
   async function sendMessage() {
@@ -310,8 +345,13 @@ export default function App() {
       </header>
 
       <div className="workspace">
+        {isMobile && (leftOpen || rightOpen) && (
+          <div className="sheet-backdrop" onClick={closeSheets} />
+        )}
+
         {leftOpen && (
           <aside className="sidebar left-sidebar">
+            <div className="sheet-handle" />
             <div className="panel-heading">
               <div>
                 <span className="eyebrow">WORKSPACE</span>
@@ -361,6 +401,7 @@ export default function App() {
                       onClick={() => {
                         setSelectedDocumentId(doc.id);
                         setPageNumber(1);
+                        if (isMobile) openPreview();
                       }}
                     >
                       <span className="file-icon"><FileText size={18} /></span>
@@ -391,7 +432,7 @@ export default function App() {
         <section className="chat-panel">
           <div className="chat-heading">
             {!leftOpen && (
-              <button className="icon-button" onClick={() => setLeftOpen(true)} title="Dokumente öffnen">
+              <button className="icon-button" onClick={openDocuments} title="Dokumente öffnen">
                 <PanelLeftClose size={17} />
               </button>
             )}
@@ -401,7 +442,7 @@ export default function App() {
               <span>{documents.length} Dokumente im Workspace</span>
             </div>
             {!rightOpen && (
-              <button className="icon-button push-right" onClick={() => setRightOpen(true)} title="Dokumentvorschau öffnen">
+              <button className="icon-button push-right" onClick={openPreview} title="Dokumentvorschau öffnen">
                 <PanelRightClose size={17} />
               </button>
             )}
@@ -507,6 +548,7 @@ export default function App() {
 
         {rightOpen && (
           <aside className="preview-panel">
+            <div className="sheet-handle" />
             <div className="preview-heading">
               <div>
                 <span className="eyebrow">ORIGINALQUELLE</span>
@@ -535,7 +577,11 @@ export default function App() {
                     >
                       <Page
                         pageNumber={pageNumber}
-                        width={Math.min(560, window.innerWidth * 0.38)}
+                        width={
+                          isMobile
+                            ? window.innerWidth - 32
+                            : Math.min(560, window.innerWidth * 0.38)
+                        }
                         renderTextLayer
                         renderAnnotationLayer
                       />
