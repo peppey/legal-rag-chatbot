@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,15 @@ OCR_DIR = PROJECT_ROOT / "data" / "preprocessed"
 RESULTS_DIR = PROJECT_ROOT / "data" / "evaluation" / "results"
 
 NO_ANSWER_CATEGORY = "nicht_im_korpus"
+
+
+def new_run_id() -> str:
+    return f"{datetime.now():%Y%m%d_%H%M%S}"
+
+
+def report_path(kind: str, run_id: str) -> Path:
+    """Default report file; the same run id pairs a retrieval and an answers report."""
+    return RESULTS_DIR / f"{kind}_{run_id}.json"
 
 
 def load_questions(path: Path = EVAL_PATH) -> list[dict[str, Any]]:

@@ -7,7 +7,6 @@ import re
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -15,9 +14,10 @@ import agentplatform
 
 from legal_rag_chatbot.evaluation import metrics
 from legal_rag_chatbot.evaluation.dataset import (
-    RESULTS_DIR,
     load_corpus,
     load_questions,
+    new_run_id,
+    report_path,
 )
 from legal_rag_chatbot.llm.chat import Turn, standalone_question
 from legal_rag_chatbot.rag.query import (
@@ -250,6 +250,10 @@ def main() -> None:
     parser.add_argument("--category", help="Only evaluate questions of this category")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--output", type=Path, help="Where to write the JSON report")
+    parser.add_argument(
+        "--run-id",
+        help="Timestamp in the report name, pass the same id to answer_eval to pair them",
+    )
     args = parser.parse_args()
 
     if args.ranker and not args.ranker_model:
@@ -284,9 +288,7 @@ def main() -> None:
             "keinem document_id zugeordnet werden."
         )
 
-    output = (
-        args.output or RESULTS_DIR / f"retrieval_{datetime.now():%Y%m%d_%H%M%S}.json"
-    )
+    output = args.output or report_path("retrieval", args.run_id or new_run_id())
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
         json.dumps(report, ensure_ascii=False, indent=2, default=list), encoding="utf-8"

@@ -5,7 +5,6 @@ import json
 import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Literal, Sequence, TypeVar
 
@@ -15,10 +14,14 @@ from pydantic import BaseModel
 
 from legal_rag_chatbot.evaluation.dataset import (
     NO_ANSWER_CATEGORY,
-    RESULTS_DIR,
     load_questions,
+    new_run_id,
+    report_path,
 )
 from legal_rag_chatbot.llm.chat import (
+    MODEL,
+    REWRITE_FOLLOW_UPS,
+    THINKING_BUDGET,
     Turn,
     answer_question,
     answer_question_grounded,
@@ -162,8 +165,13 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--mode", choices=ANSWER_FUNCTIONS, default="rerank")
     parser.add_argument("--output", type=Path, help="Where to write the JSON report")
+    parser.add_argument(
+        "--run-id",
+        help="Timestamp in the report name, pass the id of a retrieval run to pair them",
+    )
     args = parser.parse_args()
     answer_fn = ANSWER_FUNCTIONS[args.mode]
+    run_id = args.run_id or new_run_id()
 
     questions = load_questions()[: args.limit]
     client = genai.Client(vertexai=True, project=PROJECT_ID, location=JUDGE_LOCATION)
@@ -192,11 +200,22 @@ def main() -> None:
             {"gesamt": summary["unanswerable"]},
         )
 
-    output = args.output or RESULTS_DIR / f"answers_{datetime.now():%Y%m%d_%H%M%S}.json"
+    output = args.output or report_path("answers", run_id)
     output.parent.mkdir(parents=True, exist_ok=True)
+    config = {
+        "run_id": run_id,
+        "mode": args.mode,
+        "model": MODEL,
+        "judge_model": JUDGE_MODEL,
+        "thinking_budget": THINKING_BUDGET,
+        "rewrite_follow_ups": REWRITE_FOLLOW_UPS,
+        "questions": len(questions),
+    }
     output.write_text(
         json.dumps(
-            {"summary": summary, "results": results}, ensure_ascii=False, indent=2
+            {"config": config, "summary": summary, "results": results},
+            ensure_ascii=False,
+            indent=2,
         ),
         encoding="utf-8",
     )
