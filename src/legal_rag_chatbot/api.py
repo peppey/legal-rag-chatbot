@@ -6,8 +6,9 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import quote
 
-from fastapi import FastAPI, HTTPException, Response, UploadFile
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, HTTPException, Request, Response, UploadFile
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from google.genai import errors as genai_errors
 from pydantic import BaseModel, Field
 
 from legal_rag_chatbot.evaluation.dataset import load_corpus
@@ -27,8 +28,27 @@ logger = logging.getLogger(__name__)
 
 EXCERPT_CHARS = 300
 PDF_DIR = Path(__file__).resolve().parents[2] / "data" / "raw" / "pdf"
+BUSY_MESSAGE = (
+    "Der Dienst ist gerade ausgelastet. Bitte versuche es in einer Minute erneut."
+)
+FAILED_MESSAGE = "Die Antwort konnte nicht erstellt werden."
+
+
+def _is_busy(error: Exception) -> bool:
+    """Quota exhausted (429) or service unavailable (503), also after the client retries."""
+    return isinstance(error, genai_errors.APIError) and error.code in (429, 503)
+
 
 app = FastAPI(title="legal-rag-chatbot")
+
+
+@app.exception_handler(genai_errors.APIError)
+def gemini_error(request: Request, error: genai_errors.APIError) -> JSONResponse:
+    """Turn Gemini errors before the answer starts into a message the frontend can show."""
+    logger.warning("Gemini request failed: %s", error)
+    if _is_busy(error):
+        return JSONResponse({"detail": BUSY_MESSAGE}, status_code=503)
+    return JSONResponse({"detail": FAILED_MESSAGE}, status_code=502)
 
 
 class HistoryMessage(BaseModel):
@@ -148,9 +168,11 @@ def chat_stream(request: ChatRequest) -> StreamingResponse:
             for delta in stream_answer(prepared):
                 parts.append(delta)
                 yield _event("delta", text=delta)
-        except Exception:
+        except Exception as error:
             logger.exception("Streaming the answer failed")
-            yield _event("error", detail="Die Antwort konnte nicht erstellt werden.")
+            yield _event(
+                "error", detail=BUSY_MESSAGE if _is_busy(error) else FAILED_MESSAGE
+            )
             return
         answer = Answer(text="".join(parts), sources=prepared.sources)
         yield _event("done", cited=[s.number for s in answer.cited_sources()])

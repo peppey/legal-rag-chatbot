@@ -20,6 +20,12 @@ CORPUS_NAME = (
 
 Ranker = Literal["llm", "service"]
 
+# Quota errors (429) are usually gone after a few seconds, so a chat message retries them
+# with backoff (about 1, 2 and 4 seconds) instead of failing at once.
+GENAI_RETRY = genai_types.HttpRetryOptions(
+    attempts=4, initial_delay=1.0, max_delay=15.0, http_status_codes=[429, 500, 503]
+)
+
 # lru_cache alone can build a client twice when threads start together; a discarded
 # client closes its connection when it is garbage collected, even mid-request.
 _client_lock = threading.Lock()
@@ -32,7 +38,12 @@ def _rag_client() -> agentplatform.Client:
 
 @lru_cache(maxsize=1)
 def _genai_client() -> genai.Client:
-    return genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
+    return genai.Client(
+        vertexai=True,
+        project=PROJECT_ID,
+        location=LOCATION,
+        http_options=genai_types.HttpOptions(retry_options=GENAI_RETRY),
+    )
 
 
 def rag_client() -> agentplatform.Client:

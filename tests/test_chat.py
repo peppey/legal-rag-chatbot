@@ -247,3 +247,19 @@ def test_decide_route_searches_everything_if_the_model_fails(
         "Fasse das zusammen",
         chat.Route.BOTH,
     )
+
+
+def test_genai_client_retries_quota_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    from legal_rag_chatbot.rag import query
+
+    captured: dict = {}
+    monkeypatch.setattr(query.genai, "Client", lambda **kwargs: captured.update(kwargs))
+    query._genai_client.cache_clear()
+    try:
+        query.genai_client()
+    finally:
+        query._genai_client.cache_clear()
+
+    retry = captured["http_options"].retry_options
+    assert 429 in retry.http_status_codes
+    assert retry.attempts > 1

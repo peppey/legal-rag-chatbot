@@ -164,3 +164,48 @@ def test_chat_search_mode_defaults_to_auto_and_is_validated(
     assert received["search_mode"] == "auto"
     response = client.post("/api/chat", json={"question": "x", "search_mode": "web"})
     assert response.status_code == 422
+
+
+def _quota_error():
+    from google.genai import errors
+
+    return errors.ClientError(429, {"error": {"status": "RESOURCE_EXHAUSTED"}})
+
+
+def test_chat_reports_an_exhausted_quota_as_busy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def exhausted(question, **kwargs):
+        raise _quota_error()
+
+    monkeypatch.setattr(api, "answer_with_sources", exhausted)
+
+    response = TestClient(api.app).post("/api/chat", json={"question": "x"})
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == api.BUSY_MESSAGE
+
+
+def test_chat_stream_reports_an_exhausted_quota_before_and_during_streaming(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client = TestClient(api.app)
+
+    def exhausted(question, **kwargs):
+        raise _quota_error()
+
+    monkeypatch.setattr(api, "prepare_answer", exhausted)
+    response = client.post("/api/chat/stream", json={"question": "x"})
+    assert response.status_code == 503
+    assert response.json()["detail"] == api.BUSY_MESSAGE
+
+    def failing(prepared: PreparedAnswer):
+        raise _quota_error()
+        yield
+
+    prepared = PreparedAnswer(sources=[], system_prompt="", contents="")
+    monkeypatch.setattr(api, "prepare_answer", lambda question, **kwargs: prepared)
+    monkeypatch.setattr(api, "stream_answer", failing)
+    response = client.post("/api/chat/stream", json={"question": "x"})
+    events = [json.loads(line) for line in response.text.splitlines()]
+    assert events[-1] == {"type": "error", "detail": api.BUSY_MESSAGE}
