@@ -12,6 +12,7 @@ from typing import Any
 
 import agentplatform
 
+from legal_rag_chatbot import prompts
 from legal_rag_chatbot.evaluation import metrics
 from legal_rag_chatbot.evaluation.dataset import (
     load_corpus,
@@ -224,6 +225,7 @@ def run(
             "ranker": ranker,
             "ranker_model": ranker_model,
             "rewrite": rewrite,
+            **prompts.info(),
             "questions": len(questions),
         },
         "summary": summary,

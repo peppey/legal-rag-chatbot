@@ -12,6 +12,7 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
+from legal_rag_chatbot import prompts
 from legal_rag_chatbot.evaluation.dataset import (
     NO_ANSWER_CATEGORY,
     load_questions,
@@ -43,31 +44,9 @@ ANSWER_FUNCTIONS: dict[str, AnswerFn] = {
 JUDGE_MODEL = "gemini-2.5-pro"
 JUDGE_LOCATION = "europe-west4"  # gemini-2.5-pro is not available in europe-west3
 
-JUDGE_PROMPT = """\
-Du bewertest die Antwort eines juristischen RAG-Assistenten anhand einer Referenzantwort.
-
-Frage: {question}
-
-Referenzantwort: {reference}
-
-Antwort des Systems: {answer}
-
-{instruction}
-"""
-
-INSTRUCTION_ANSWERABLE = """\
-Bewerte "correctness":
-- "richtig": alle wesentlichen Fakten der Referenzantwort sind enthalten und korrekt.
-- "teilweise": nur ein Teil der wesentlichen Fakten ist enthalten oder korrekt.
-- "falsch": die Antwort fehlt, widerspricht der Referenz oder verweigert die Antwort.
-Setze "hallucination" auf true, wenn die Antwort konkrete Tatsachen behauptet, die der Referenzantwort widersprechen.
-Setze "abstained" auf true, wenn das System sagt, dass die Dokumente keine ausreichende Grundlage liefern."""
-
-INSTRUCTION_UNANSWERABLE = """\
-Die Frage ist anhand des Korpus NICHT beantwortbar (siehe Referenzantwort).
-Setze "abstained" auf true, wenn das System ausdrücklich sagt, dass die Dokumente keine ausreichende Grundlage liefern.
-Setze "hallucination" auf true, wenn das System stattdessen konkrete Tatsachen als Antwort behauptet.
-Setze "correctness" auf "richtig", wenn abstained true und hallucination false ist, sonst auf "falsch"."""
+JUDGE_PROMPT = f"{prompts.get('judge')}\n"
+INSTRUCTION_ANSWERABLE = prompts.get("judge_answerable")
+INSTRUCTION_UNANSWERABLE = prompts.get("judge_unanswerable")
 
 
 class Judgement(BaseModel):
@@ -209,6 +188,7 @@ def main() -> None:
         "judge_model": JUDGE_MODEL,
         "thinking_budget": THINKING_BUDGET,
         "rewrite_follow_ups": REWRITE_FOLLOW_UPS,
+        **prompts.info(),
         "questions": len(questions),
     }
     output.write_text(

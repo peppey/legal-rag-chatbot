@@ -147,6 +147,17 @@ uv run python -m legal_rag_chatbot.scripts.evaluate_answers --mode grounded --li
 
 Both scripts accept `--limit N` for a quick run, `--workers` and `--output` for the report path (default: `data/evaluation/results/`). The relevance labels belong to specific document contents. If you change the documents substantially, review the labels and re-import the corpus before comparing results with older reports.
 
+### Prompt versions
+
+The prompts (system, answer format, citations, uploads, query rewriting and the judge) are Markdown files in [src/legal_rag_chatbot/prompts/](src/legal_rag_chatbot/prompts/), one directory per version (`v1`, `v2`, ...). To change a prompt, copy the latest version directory, edit the copy and select it for a run:
+
+```bash
+PROMPT_VERSION=v2 uv run python -m legal_rag_chatbot.scripts.evaluate_answers
+PROMPT_VERSION=v2 uv run uvicorn legal_rag_chatbot.api:app
+```
+
+Without `PROMPT_VERSION` the default `v1` is used. Never edit a released version, otherwise old reports can no longer be reproduced. Both evaluation reports store `prompt_version` and `prompt_hash` in their `config`, so a changed version directory shows up as a new hash.
+
 ## Development
 
 ```bash
