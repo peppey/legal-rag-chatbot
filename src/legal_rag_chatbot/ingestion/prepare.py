@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from legal_rag_chatbot.access import GROUPS, chunk_file_name
 from legal_rag_chatbot.ingestion.chunking import chunk_paragraphs, split_at_offsets
 
 # Fields that end up in the embedded chunk text; ids and flags would only dilute it.
@@ -42,31 +43,45 @@ def _paragraphs(ocr: dict) -> list[str]:
         ) from None
 
 
-def build_embedding_file(
-    source: str | Path, ocr_dir: str | Path, destination: str | Path
-) -> int:
-    """Write one JSONL line per chunk (document metadata, section, text) and return the chunk count."""
-    destination = Path(destination)
-    destination.parent.mkdir(parents=True, exist_ok=True)
+def build_embedding_files(
+    source: str | Path, ocr_dir: str | Path, destination_dir: str | Path
+) -> dict[str, int]:
+    """Write one chunk file per access group and return the chunk count per group.
 
-    count = 0
-    with (
-        Path(source).open(encoding="utf-8") as src,
-        destination.open("w", encoding="utf-8") as dst,
-    ):
-        for line in src:
-            if not line.strip():
-                continue
-            doc = json.loads(line)
-            ocr = load_ocr(ocr_dir, doc["document_id"])
-            chunks = chunk_paragraphs(_paragraphs(ocr))
-            if not chunks:
-                raise ValueError(
-                    f"No text found in the OCR result of {doc['document_id']}"
-                )
-            for chunk in chunks:
-                record = {**doc, **chunk}
-                slim = {field: record[field] for field in EMBEDDED_FIELDS}
-                dst.write(json.dumps(slim, ensure_ascii=False) + "\n")
-                count += 1
-    return count
+    The group is not part of the embedded text: it is the file a chunk lives in, and the
+    retrieval restricts the search to the files of the groups a user may read.
+    """
+    destination_dir = Path(destination_dir)
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    counts = dict.fromkeys(GROUPS, 0)
+    files = {
+        group: (destination_dir / chunk_file_name(group)).open("w", encoding="utf-8")
+        for group in GROUPS
+    }
+    try:
+        with Path(source).open(encoding="utf-8") as src:
+            for line in src:
+                if not line.strip():
+                    continue
+                doc = json.loads(line)
+                ocr = load_ocr(ocr_dir, doc["document_id"])
+                group = ocr.get("access_group")
+                if group not in GROUPS:
+                    raise ValueError(
+                        f"OCR result of {doc['document_id']} has no valid access group "
+                        f"({group!r}); rerun the OCR with --force"
+                    )
+                chunks = chunk_paragraphs(_paragraphs(ocr))
+                if not chunks:
+                    raise ValueError(
+                        f"No text found in the OCR result of {doc['document_id']}"
+                    )
+                for chunk in chunks:
+                    record = {**doc, **chunk}
+                    slim = {field: record[field] for field in EMBEDDED_FIELDS}
+                    files[group].write(json.dumps(slim, ensure_ascii=False) + "\n")
+                    counts[group] += 1
+    finally:
+        for file in files.values():
+            file.close()
+    return counts

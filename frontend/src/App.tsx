@@ -19,10 +19,19 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  LogOut
 } from "lucide-react";
 
-import { askQuestionStream, deleteDocument, isDemoMode, uploadDocument } from "./api";
+import {
+  askQuestionStream,
+  deleteDocument,
+  isDemoMode,
+  openFile,
+  pdfSource,
+  uploadDocument,
+  type PdfSource
+} from "./api";
 import type { ChatMessage, DocumentItem, Source } from "./types";
 
 import "react-pdf/dist/Page/AnnotationLayer.css";
@@ -104,7 +113,13 @@ const formatSize = (bytes: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export default function App() {
+export default function App({
+  userEmail,
+  onSignOut
+}: {
+  userEmail?: string;
+  onSignOut?: () => void;
+}) {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
@@ -144,6 +159,22 @@ export default function App() {
     () => documents.find((doc) => doc.id === selectedDocumentId) ?? null,
     [documents, selectedDocumentId]
   );
+
+  // Kept in state so react-pdf sees the same object on every render.
+  const [selectedPdf, setSelectedPdf] = useState<PdfSource | null>(null);
+  const selectedFileUrl = selectedDocument?.fileUrl;
+  useEffect(() => {
+    let current = true;
+    setSelectedPdf(null);
+    if (selectedFileUrl) {
+      void pdfSource(selectedFileUrl).then((source) => {
+        if (current) setSelectedPdf(source);
+      });
+    }
+    return () => {
+      current = false;
+    };
+  }, [selectedFileUrl]);
 
   const messagesRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -329,8 +360,13 @@ export default function App() {
           {isDemoMode() && <span className="demo-badge">Demo-Modus</span>}
           <span className="privacy-note">
             <span className="status-dot" />
-            Lokale Vorschau
+            {userEmail || "Lokale Vorschau"}
           </span>
+          {onSignOut && (
+            <button className="icon-button" onClick={onSignOut} title="Abmelden">
+              <LogOut size={16} />
+            </button>
+          )}
         </div>
       </header>
 
@@ -559,7 +595,8 @@ export default function App() {
                 {selectedDocument.name.toLowerCase().endsWith(".pdf") ? (
                   <div className="pdf-stage">
                     <Document
-                      file={selectedDocument.fileUrl}
+                      file={selectedPdf}
+                      noData={<div className="preview-empty">PDF wird geladen …</div>}
                       onLoadSuccess={({ numPages: total }) => setNumPages(total)}
                       onLoadError={() => setError("PDF konnte nicht geöffnet werden.")}
                       loading={<div className="preview-empty">PDF wird geladen …</div>}
@@ -583,7 +620,15 @@ export default function App() {
                     <strong>Keine PDF-Vorschau verfügbar</strong>
                     <span>Die Vorschau unterstützt derzeit PDF-Dateien. DOCX und TXT werden in der Dokumentenliste angezeigt.</span>
                     {selectedDocument.fileUrl && (
-                      <a href={selectedDocument.fileUrl} target="_blank" rel="noreferrer">
+                      <a
+                        href={selectedDocument.fileUrl}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          openFile(selectedDocument.fileUrl).catch((err) =>
+                            setError(err instanceof Error ? err.message : "Datei konnte nicht geöffnet werden.")
+                          );
+                        }}
+                      >
                         Datei separat öffnen
                       </a>
                     )}

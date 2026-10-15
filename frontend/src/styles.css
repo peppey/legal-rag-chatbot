@@ -1045,3 +1045,55 @@ button.citation:hover {
     display: none;
   }
 }
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #62716a;
+}
+
+.login-card input {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 11px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  color: inherit;
+}
+
+.login-card .send-button {
+  justify-content: center;
+  padding: 11px 12px;
+}
+
+.login-error {
+  border: 1px solid #efd5d2;
+  background: #fff6f5;
+  color: #8d4944;
+  padding: 9px 11px;
+  border-radius: 7px;
+  font-size: 11px;
+}

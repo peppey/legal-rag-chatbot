@@ -8,6 +8,8 @@ from google.api_core import exceptions, retry
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai
 
+from legal_rag_chatbot.access import GROUPS
+
 PROCESSOR_TYPE = "OCR_PROCESSOR"
 LANGUAGE_HINTS = ["de"]
 RETRY = retry.Retry(
@@ -80,8 +82,27 @@ def _anchor_text(text: str, anchor: documentai.Document.TextAnchor) -> str:
     )
 
 
+def find_pdfs(pdf_dir: Path) -> list[Path]:
+    """PDFs in the group folders below pdf_dir; all documents of one case must share a group."""
+    unknown = [d.name for d in pdf_dir.iterdir() if d.is_dir() and d.name not in GROUPS]
+    if unknown:
+        raise ValueError(f"Unknown group folders in {pdf_dir}: {sorted(unknown)}")
+    pdfs = sorted(pdf for group in GROUPS for pdf in (pdf_dir / group).glob("*.pdf"))
+    case_groups: dict[str, set[str]] = {}
+    for pdf in pdfs:
+        case_id = pdf.stem.rsplit("-", 1)[0]
+        case_groups.setdefault(case_id, set()).add(pdf.parent.name)
+    split = {case: sorted(g) for case, g in case_groups.items() if len(g) > 1}
+    if split:
+        raise ValueError(f"Cases spread over several groups: {split}")
+    return pdfs
+
+
 def to_record(
-    pdf_name: str, processor_name: str, document: documentai.Document
+    pdf_name: str,
+    processor_name: str,
+    document: documentai.Document,
+    access_group: str,
 ) -> dict:
     """Convert a Document AI result into the JSON record stored per PDF."""
     leading = len(document.text) - len(document.text.lstrip())
@@ -106,6 +127,7 @@ def to_record(
     return {
         "document_id": Path(pdf_name).stem,
         "source_pdf": pdf_name,
+        "access_group": access_group,
         "text": document.text.strip(),
         "paragraph_starts": paragraph_starts,
         "pages": pages,
@@ -131,7 +153,7 @@ def run_ocr(
     output_dir.mkdir(parents=True, exist_ok=True)
     pdfs = [
         pdf
-        for pdf in sorted(pdf_dir.glob("*.pdf"))
+        for pdf in find_pdfs(pdf_dir)
         if force or not (output_dir / f"{pdf.stem}.json").exists()
     ][:limit]
     if not pdfs:
@@ -143,7 +165,10 @@ def run_ocr(
 
     def work(pdf: Path) -> None:
         record = to_record(
-            pdf.name, processor_name, ocr_pdf(client, processor_name, pdf)
+            pdf.name,
+            processor_name,
+            ocr_pdf(client, processor_name, pdf),
+            pdf.parent.name,
         )
         (output_dir / f"{pdf.stem}.json").write_text(
             json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8"

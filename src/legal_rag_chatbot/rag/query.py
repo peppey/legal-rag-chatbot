@@ -1,5 +1,6 @@
 import re
 import threading
+from collections.abc import Collection
 from functools import lru_cache
 from typing import Any, Literal
 
@@ -7,6 +8,7 @@ import agentplatform
 from google import genai
 from google.genai import types as genai_types
 
+from legal_rag_chatbot.access import GROUPS, chunk_file_name
 from legal_rag_chatbot.evaluation.dataset import load_corpus
 
 DOC_ID_PATTERN = re.compile(r"^document_id (\S+)", re.MULTILINE)
@@ -15,7 +17,7 @@ PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 
 CORPUS_NAME = (
-    "projects/187644435346/locations/europe-west3/ragCorpora/1152921504606846976"
+    "projects/187644435346/locations/europe-west3/ragCorpora/7454583283205013504"
 )
 
 Ranker = Literal["llm", "service"]
@@ -84,15 +86,22 @@ def fetch_contexts(
     client: agentplatform.Client | None = None,
     ranker: Ranker | None = None,
     ranker_model: str | None = None,
+    *,
+    groups: Collection[str],
 ) -> list[Any]:
-    """Return the top_k retrieved contexts for a question, best first."""
+    """Return the top_k retrieved contexts from the files of the given groups, best first."""
     client = client or rag_client()
+    file_ids = rag_file_ids(groups)
+    if not file_ids:
+        # Without file ids Vertex would search the whole corpus.
+        return []
 
     response = client.rag.retrieve_contexts(
         vertex_rag_store=genai_types.VertexRagStore(
             rag_resources=[
                 genai_types.VertexRagStoreRagResource(
                     rag_corpus=CORPUS_NAME,
+                    rag_file_ids=file_ids,
                 )
             ],
         ),
@@ -137,9 +146,23 @@ def map_chunk_to_document(
     return None
 
 
+@lru_cache(maxsize=1)
+def _rag_file_index() -> dict[str, str]:
+    """RagFile display name to file id. Cached, so restart after re-importing the corpus."""
+    files = rag_client().rag.list_files(name=CORPUS_NAME).rag_files or []
+    return {file.display_name: file.name.rsplit("/", 1)[-1] for file in files}
+
+
+def rag_file_ids(groups: Collection[str]) -> list[str]:
+    """Ids of the RagFiles holding the chunks of the given groups."""
+    index = _rag_file_index()
+    names = [chunk_file_name(group) for group in GROUPS if group in groups]
+    return [index[name] for name in names if name in index]
+
+
 def retrieve_contexts(question: str) -> None:
-    """Retrieve relevant document chunks for a question."""
-    for context in fetch_contexts(question):
+    """Retrieve relevant document chunks for a question (all groups, for local checks)."""
+    for context in fetch_contexts(question, groups=GROUPS):
         print("=" * 80)
         print(f"Source: {context.source_uri}")
         print(context.text)

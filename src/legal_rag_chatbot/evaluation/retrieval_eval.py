@@ -13,6 +13,7 @@ from typing import Any
 import agentplatform
 
 from legal_rag_chatbot import prompts
+from legal_rag_chatbot.access import GROUPS
 from legal_rag_chatbot.evaluation import metrics
 from legal_rag_chatbot.evaluation.dataset import (
     load_corpus,
@@ -76,6 +77,7 @@ def evaluate_question(
                 client=client,
                 ranker=ranker,
                 ranker_model=ranker_model,
+                groups=GROUPS,
             )
             # Empty responses are sometimes transient; retry before accepting them.
             if contexts or attempt == MAX_ATTEMPTS - 1:

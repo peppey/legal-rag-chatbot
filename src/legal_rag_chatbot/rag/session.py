@@ -57,6 +57,7 @@ class SessionChunk:
 @dataclass
 class SessionDocument:
     id: str
+    owner: str
     name: str
     media_type: str
     content: bytes
@@ -80,7 +81,7 @@ class SessionStore:
         self._documents: dict[str, SessionDocument] = {}
         self._lock = threading.Lock()
 
-    def add(self, name: str, data: bytes) -> SessionDocument:
+    def add(self, name: str, data: bytes, *, owner: str) -> SessionDocument:
         """Extract, chunk and embed an upload. Raises ExtractionError for unreadable files."""
         name = Path(name).name or "Dokument"
         chunks = [
@@ -92,6 +93,7 @@ class SessionStore:
             raise ExtractionError("Im Dokument wurde kein Text gefunden.")
         document = SessionDocument(
             id=uuid.uuid4().hex,
+            owner=owner,
             name=name,
             media_type=MEDIA_TYPES[Path(name).suffix.lower()],
             content=data,
@@ -103,18 +105,25 @@ class SessionStore:
             self._documents[document.id] = document
         return document
 
-    def get(self, document_id: str) -> SessionDocument | None:
-        return self._documents.get(document_id)
+    def get(self, document_id: str, owner: str) -> SessionDocument | None:
+        """The upload, but only for the user who uploaded it."""
+        document = self._documents.get(document_id)
+        return document if document and document.owner == owner else None
 
-    def remove(self, document_id: str) -> bool:
+    def remove(self, document_id: str, owner: str) -> bool:
         with self._lock:
-            return self._documents.pop(document_id, None) is not None
+            if self.get(document_id, owner) is None:
+                return False
+            del self._documents[document_id]
+            return True
 
     def full_text(
-        self, document_ids: Iterable[str], max_words: int
+        self, document_ids: Iterable[str], max_words: int, *, owner: str
     ) -> list[SessionHit]:
         """Return all chunks of the given uploads, or [] if they exceed max_words together."""
-        documents = [d for i in dict.fromkeys(document_ids) if (d := self.get(i))]
+        documents = [
+            d for i in dict.fromkeys(document_ids) if (d := self.get(i, owner))
+        ]
         words = sum(len(c.text.split()) for d in documents for c in d.chunks)
         if words > max_words:
             return []
@@ -125,10 +134,12 @@ class SessionStore:
         ]
 
     def search(
-        self, question: str, document_ids: Iterable[str], top_k: int
+        self, question: str, document_ids: Iterable[str], top_k: int, *, owner: str
     ) -> list[SessionHit]:
         """Return the chunks of the given uploads that are most similar to the question."""
-        documents = [d for i in dict.fromkeys(document_ids) if (d := self.get(i))]
+        documents = [
+            d for i in dict.fromkeys(document_ids) if (d := self.get(i, owner))
+        ]
         if not documents:
             return []
         query = self._embedder([question], "RETRIEVAL_QUERY")[0]

@@ -34,8 +34,9 @@ The corpus is synthetic. Every person, company and case is fictional.
 |---|---|
 | `data/raw/synthetic_legal_counsel_documents.jsonl` | The original documents with metadata (source of truth, the only copy of this file) |
 | `data/raw/pdf/` | PDF renderings of the documents (generated, git-ignored) |
-| `data/preprocessed/` | OCR results of the PDFs, one JSON file per document (generated) |
-| `data/chunks/synthetic_legal_counsel_documents_chunks.jsonl` | Derived chunk file that is uploaded and embedded |
+| `data/raw/pdf_with_noise/{A,B,Geteilt}/` | The PDFs that are OCRed, one folder per access group (see Access control) |
+| `data/preprocessed/` | OCR results of the PDFs, one JSON file per document with its `access_group` (generated) |
+| `data/chunks/synthetic_legal_counsel_documents_chunks_{A,B,Geteilt}.jsonl` | Derived chunk files, one per group, that are uploaded and embedded |
 | `data/evaluation/retrieval_eval.json` | Evaluation questions with graded relevance labels and reference answers |
 | `data/evaluation/results/` | JSON reports of past evaluation runs |
 
@@ -53,8 +54,8 @@ The project, region, bucket and corpus name are constants in the code, not envir
 | Constant | File |
 |---|---|
 | `PROJECT_ID`, `LOCATION` | [corpus.py](src/legal_rag_chatbot/rag/corpus.py), [query.py](src/legal_rag_chatbot/rag/query.py), [chat.py](src/legal_rag_chatbot/llm/chat.py) |
-| `BUCKET_NAME`, `DESTINATION_PATH` | [upload_dataset.py](src/legal_rag_chatbot/scripts/upload_dataset.py) |
-| `GCS_PATH` | [corpus.py](src/legal_rag_chatbot/rag/corpus.py) |
+| `BUCKET_NAME`, `DESTINATION_DIR` | [upload_dataset.py](src/legal_rag_chatbot/scripts/upload_dataset.py) |
+| `GCS_URIS` | [corpus.py](src/legal_rag_chatbot/rag/corpus.py) |
 | `CORPUS_NAME` | [query.py](src/legal_rag_chatbot/rag/query.py), [chat.py](src/legal_rag_chatbot/llm/chat.py) |
 
 ## Usage
@@ -65,13 +66,13 @@ Build the corpus (once, and again whenever the documents change). The steps depe
 # 1. Render the documents as PDFs (data/raw/pdf)
 uv run python -m legal_rag_chatbot.scripts.export_pdfs
 
-# 2. OCR the PDFs with Document AI (data/preprocessed), see below for the one-time setup
+# 2. OCR the PDFs in data/raw/pdf_with_noise/{A,B,Geteilt} with Document AI (data/preprocessed), see below for the one-time setup
 uv run python -m legal_rag_chatbot.scripts.run_ocr
 
-# 3. Chunk the OCR text and upload the chunk file to Cloud Storage
+# 3. Chunk the OCR text and upload one chunk file per access group to Cloud Storage
 uv run python -m legal_rag_chatbot.scripts.upload_dataset
 
-# 4. Create a RAG corpus and import the file, then copy the printed corpus name into CORPUS_NAME
+# 4. Create a RAG corpus and import the three files, then copy the printed corpus name into CORPUS_NAME
 uv run python -m legal_rag_chatbot.rag.corpus
 ```
 
@@ -88,9 +89,12 @@ uv run python -m legal_rag_chatbot.llm.chat
 Or from Python:
 
 ```python
+from legal_rag_chatbot.access import SYSTEM_ACCESS
 from legal_rag_chatbot.llm.chat import answer_with_sources
 
-answer = answer_with_sources("Bis wann muss Frau Keller der Kündigung widersprechen?")
+answer = answer_with_sources(
+    "Bis wann muss Frau Keller der Kündigung widersprechen?", access=SYSTEM_ACCESS
+)
 print(answer.text)
 for source in answer.cited_sources():
     print(source.number, source.document_id)
@@ -101,7 +105,7 @@ for source in answer.cited_sources():
 The React frontend in `frontend/` (Vite, TypeScript) talks to the FastAPI backend in [api.py](src/legal_rag_chatbot/api.py). Vite proxies `/api` to `http://127.0.0.1:8000`. Requires Node.js 18 or newer. Start the backend and the frontend in two terminals:
 
 ```bash
-# Terminal 1: backend on http://127.0.0.1:8000
+# Terminal 1: backend on http://127.0.0.1:8000 (log in in the frontend; for curl without a token use AUTH_MODE=dev DEV_ROLE=admin)
 uv run uvicorn legal_rag_chatbot.api:app --reload
 
 # Terminal 2: frontend on http://localhost:5173
@@ -113,6 +117,26 @@ npm run dev
 `npm run build` creates a production build in `frontend/dist/`.
 
 Documents can be added by drag and drop onto the page or with the "Dokumente hinzufügen" button (PDF, DOCX, TXT, up to 20 MB each, several at once). Uploads are chunked with the same logic as the corpus and embedded with `text-embedding-005` into an in-memory store ([session.py](src/legal_rag_chatbot/rag/session.py)). The chat searches the uploads that are listed in the sidebar in addition to the RAG corpus and marks their excerpts as uploaded documents. Uploads are never written to Cloud Storage or imported into the corpus, and they are lost when the backend restarts. Scanned PDFs without a text layer are rejected.
+
+### Access control
+
+Every document belongs to one group, given by the folder of its PDF in `data/raw/pdf_with_noise/`: `A`, `B` or `Geteilt`. All documents of a case must be in the same group. The OCR stores the group in `access_group`, `upload_dataset` writes one chunk file per group and `corpus` imports them as three RagFiles of the one corpus.
+
+The roles in [access_policy.json](src/legal_rag_chatbot/access_policy.json) map to groups: `a` reads `A` and `Geteilt`, `b` reads `B` and `Geteilt`, `admin` reads everything. Retrieval passes only the RagFile ids of the allowed groups to Vertex ([query.py](src/legal_rag_chatbot/rag/query.py)); it never searches the whole corpus, so a user without a readable group gets no excerpts. The PDF endpoint answers 404 for documents of other groups, and uploads are visible only to the user who made them. Evaluations and scripts use `SYSTEM_ACCESS` (all groups).
+
+The API expects the Identity Platform ID token as `Authorization: Bearer ...` ([auth.py](src/legal_rag_chatbot/auth.py)). It checks signature, expiry, issuer and audience against the Google signing keys and reads the role from the `role` claim. Requests without a valid token get 401, tokens without a known role 403. `AUTH_MODE=dev` skips the token and takes the role from `DEV_ROLE` or the `X-Dev-Role` header; use it for local work only. After re-importing the corpus, restart the backend (the RagFile ids are cached).
+
+Users are created in Identity Platform (email/password, self-registration disabled). The role is a custom claim, set after the account exists:
+
+```bash
+# Admin REST API, TOKEN=$(gcloud auth print-access-token)
+curl -X POST -H "Authorization: Bearer $TOKEN" -H "x-goog-user-project: legal-rag-chatbot" \
+  -H "Content-Type: application/json" \
+  -d '{"localId": "<uid>", "customAttributes": "{\"role\": \"a\"}"}' \
+  https://identitytoolkit.googleapis.com/v1/projects/legal-rag-chatbot/accounts:update
+```
+
+The user has to sign in again to get the new claim. The frontend reads `VITE_FIREBASE_PROJECT_ID` and `VITE_FIREBASE_API_KEY` from [frontend/.env](frontend/.env) (a browser API key restricted to the Identity Toolkit API) and shows a login page unless `VITE_DEMO_MODE` is true.
 
 ### PDF export and OCR
 

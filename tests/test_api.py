@@ -8,6 +8,12 @@ from legal_rag_chatbot.llm.chat import Answer, PreparedAnswer, Source, Turn
 from legal_rag_chatbot.rag.session import SessionStore
 
 
+@pytest.fixture(autouse=True)
+def dev_admin(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AUTH_MODE", "dev")
+    monkeypatch.setenv("DEV_ROLE", "admin")
+
+
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     answer = Answer(

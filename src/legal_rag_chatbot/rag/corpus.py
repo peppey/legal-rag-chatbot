@@ -2,11 +2,15 @@ import agentplatform
 from agentplatform import types
 from google.genai import types as genai_types
 
+from legal_rag_chatbot.access import GROUPS, chunk_file_name
+
 PROJECT_ID = "legal-rag-chatbot"
 LOCATION = "europe-west3"
 
 CORPUS_DISPLAY_NAME = "legal-counsel-corpus"
-GCS_PATH = "gs://legal-rag-chatbot-documents/raw/synthetic_legal_counsel_documents_chunks.jsonl"
+GCS_URIS = [
+    f"gs://legal-rag-chatbot-documents/raw/{chunk_file_name(group)}" for group in GROUPS
+]
 
 
 def create_corpus() -> str:
@@ -37,7 +41,7 @@ def create_corpus() -> str:
         name=corpus.name,
         import_config=types.ImportRagFilesConfig(
             gcs_source=genai_types.GcsSource(
-                uris=[GCS_PATH],
+                uris=GCS_URIS,
             ),
             rag_file_transformation_config=(
                 types.RagFileTransformationConfig(

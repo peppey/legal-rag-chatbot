@@ -1,12 +1,9 @@
 import argparse
-from pathlib import Path
 
+from legal_rag_chatbot.access import OCR_DIR as OUTPUT_DIR
+from legal_rag_chatbot.access import PDF_DIR
 from legal_rag_chatbot.ingestion.ocr import run_ocr
 from legal_rag_chatbot.rag.query import PROJECT_ID
-
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-PDF_DIR = PROJECT_ROOT / "data" / "raw" / "pdf"
-OUTPUT_DIR = PROJECT_ROOT / "data" / "preprocessed"
 
 # Document AI is not available in europe-west3; "eu" keeps the data in the EU.
 LOCATION = "eu"
@@ -14,7 +11,7 @@ PROCESSOR_DISPLAY_NAME = "legal-rag-ocr"
 
 
 def main() -> None:
-    """OCR the PDFs in data/raw/pdf and write one JSON file per PDF to data/preprocessed."""
+    """OCR the PDFs in data/raw/pdf_with_noise/{A,B,Geteilt} and write one JSON file per PDF to data/preprocessed."""
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument("--force", action="store_true", help="Redo existing results")
     parser.add_argument("--limit", type=int, help="Only process the first N PDFs")

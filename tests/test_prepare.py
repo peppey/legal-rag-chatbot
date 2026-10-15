@@ -3,7 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from legal_rag_chatbot.ingestion.prepare import EMBEDDED_FIELDS, build_embedding_file
+from legal_rag_chatbot.access import GROUPS, chunk_file_name
+from legal_rag_chatbot.ingestion.prepare import EMBEDDED_FIELDS, build_embedding_files
 
 
 def _write_source(tmp_path: Path) -> Path:
@@ -22,33 +23,47 @@ def _write_ocr(ocr_dir: Path, **fields) -> None:
     )
 
 
-def test_build_embedding_file_writes_one_record_per_chunk(tmp_path: Path) -> None:
-    source = _write_source(tmp_path)
-    ocr_dir = tmp_path / "ocr"
-    text = "Erster Absatz.\nCASE-001-01\nSeite 1"
-    _write_ocr(ocr_dir, text=text, paragraph_starts=[0, 15, 27])
-
-    destination = tmp_path / "out" / "chunks.jsonl"
-    assert build_embedding_file(source, ocr_dir, destination) == 1
-
-    written = json.loads(destination.read_text(encoding="utf-8"))
-    assert tuple(written) == EMBEDDED_FIELDS
-    assert written["content"] == "Erster Absatz."
-    assert written["section"] == "Abschnitt 1"
-    assert written["case_id"] == "case_id-value"
-
-
-def test_build_embedding_file_requires_paragraph_offsets_in_the_ocr_result(
+def test_build_embedding_files_writes_the_chunks_into_the_file_of_their_group(
     tmp_path: Path,
 ) -> None:
     source = _write_source(tmp_path)
     ocr_dir = tmp_path / "ocr"
-    _write_ocr(ocr_dir, text="no offsets here")
+    text = "Erster Absatz.\nCASE-001-01\nSeite 1"
+    _write_ocr(ocr_dir, text=text, paragraph_starts=[0, 15, 27], access_group="B")
+
+    out = tmp_path / "out"
+    assert build_embedding_files(source, ocr_dir, out) == {"A": 0, "B": 1, "Geteilt": 0}
+
+    assert (out / chunk_file_name("A")).read_text(encoding="utf-8") == ""
+    written = json.loads((out / chunk_file_name("B")).read_text(encoding="utf-8"))
+    assert tuple(written) == EMBEDDED_FIELDS
+    assert written["content"] == "Erster Absatz."
+    assert written["section"] == "Abschnitt 1"
+    assert written["case_id"] == "case_id-value"
+    assert all((out / chunk_file_name(g)).is_file() for g in GROUPS)
+
+
+def test_build_embedding_files_requires_an_access_group_in_the_ocr_result(
+    tmp_path: Path,
+) -> None:
+    source = _write_source(tmp_path)
+    ocr_dir = tmp_path / "ocr"
+    _write_ocr(ocr_dir, text="Absatz", paragraph_starts=[0])
+    with pytest.raises(ValueError, match="access group"):
+        build_embedding_files(source, ocr_dir, tmp_path / "out")
+
+
+def test_build_embedding_files_requires_paragraph_offsets_in_the_ocr_result(
+    tmp_path: Path,
+) -> None:
+    source = _write_source(tmp_path)
+    ocr_dir = tmp_path / "ocr"
+    _write_ocr(ocr_dir, text="no offsets here", access_group="A")
     with pytest.raises(ValueError, match="--force"):
-        build_embedding_file(source, ocr_dir, tmp_path / "chunks.jsonl")
+        build_embedding_files(source, ocr_dir, tmp_path / "out")
 
 
-def test_build_embedding_file_requires_an_ocr_result(tmp_path: Path) -> None:
+def test_build_embedding_files_requires_an_ocr_result(tmp_path: Path) -> None:
     source = _write_source(tmp_path)
     with pytest.raises(FileNotFoundError, match="OCR"):
-        build_embedding_file(source, tmp_path / "ocr", tmp_path / "slim.jsonl")
+        build_embedding_files(source, tmp_path / "ocr", tmp_path / "out")

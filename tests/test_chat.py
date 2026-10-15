@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from legal_rag_chatbot.access import SYSTEM_ACCESS
 from legal_rag_chatbot.llm import chat
 from legal_rag_chatbot.llm.chat import Turn
 
@@ -158,7 +159,7 @@ def test_smalltalk_needs_no_search_and_no_model(
     monkeypatch.setattr(chat, "fetch_contexts", _fail)
     monkeypatch.setattr(chat, "genai_client", _fail)
 
-    prepared = chat.prepare_answer("Hallo", search_mode="auto")
+    prepared = chat.prepare_answer("Hallo", search_mode="auto", access=SYSTEM_ACCESS)
 
     assert prepared.route is chat.Route.NONE
     assert prepared.sources == []
@@ -174,12 +175,15 @@ def _hit(text: str = "Vertragstext"):
 
 def test_upload_route_skips_the_corpus_search(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(chat, "fetch_contexts", _fail)
-    monkeypatch.setattr(chat.session.store, "full_text", lambda ids, words: [_hit()])
+    monkeypatch.setattr(
+        chat.session.store, "full_text", lambda ids, words, **kwargs: [_hit()]
+    )
 
     prepared = chat.prepare_answer(
         "Fasse das Dokument zusammen",
         uploaded_document_ids=["upload-1"],
         search_mode="uploads",
+        access=SYSTEM_ACCESS,
     )
 
     assert prepared.route is chat.Route.UPLOADS
@@ -191,13 +195,15 @@ def test_upload_route_falls_back_to_the_corpus_without_hits(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     searched: list[str] = []
-    monkeypatch.setattr(chat.session.store, "full_text", lambda ids, words: [])
-    monkeypatch.setattr(chat.session.store, "search", lambda q, ids, k: [])
+    monkeypatch.setattr(chat.session.store, "full_text", lambda ids, words, **kw: [])
+    monkeypatch.setattr(chat.session.store, "search", lambda q, ids, k, **kw: [])
     monkeypatch.setattr(
         chat, "fetch_contexts", lambda q, **kwargs: searched.append(q) or []
     )
 
-    chat.prepare_answer("Wie hoch ist die Miete?", search_mode="uploads")
+    chat.prepare_answer(
+        "Wie hoch ist die Miete?", search_mode="uploads", access=SYSTEM_ACCESS
+    )
 
     assert searched == ["Wie hoch ist die Miete?"]
 
@@ -211,6 +217,7 @@ def test_corpus_route_ignores_uploads(monkeypatch: pytest.MonkeyPatch) -> None:
         "Wie hoch ist die Miete?",
         uploaded_document_ids=["upload-1"],
         search_mode="corpus",
+        access=SYSTEM_ACCESS,
     )
 
     assert prepared.route is chat.Route.CORPUS

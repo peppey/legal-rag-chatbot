@@ -1,4 +1,5 @@
 
+import { authFetch, authHeaders } from "./auth";
 import type { ChatMessage, DocumentItem, Source } from "./types";
 
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE !== "false";
@@ -16,7 +17,7 @@ async function request<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-  const response = await fetch(path, init);
+  const response = await authFetch(path, init);
 
   if (!response.ok) {
     throw new Error(await errorMessage(response));
@@ -38,7 +39,25 @@ async function errorMessage(response: Response): Promise<string> {
 
 export async function deleteDocument(id: string): Promise<void> {
   if (DEMO_MODE) return;
-  await fetch(`/api/documents/${id}`, { method: "DELETE" });
+  await authFetch(`/api/documents/${id}`, { method: "DELETE" });
+}
+
+export type PdfSource = string | { url: string; httpHeaders: Record<string, string> };
+
+// Documents from the backend need the token; the PDF viewer sends it as a header.
+export async function pdfSource(fileUrl: string): Promise<PdfSource> {
+  if (DEMO_MODE || !fileUrl.startsWith("/api/")) return fileUrl;
+  return { url: fileUrl, httpHeaders: await authHeaders() };
+}
+
+export async function openFile(fileUrl: string): Promise<void> {
+  if (DEMO_MODE || !fileUrl.startsWith("/api/")) {
+    window.open(fileUrl, "_blank", "noreferrer");
+    return;
+  }
+  const response = await authFetch(fileUrl);
+  if (!response.ok) throw new Error(await errorMessage(response));
+  window.open(URL.createObjectURL(await response.blob()), "_blank");
 }
 
 export async function uploadDocument(file: File): Promise<DocumentItem> {
@@ -147,7 +166,7 @@ export async function askQuestionStream(
     return;
   }
 
-  const response = await fetch("/api/chat/stream", {
+  const response = await authFetch("/api/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

@@ -13,6 +13,7 @@ from google.genai import types
 from pydantic import BaseModel
 
 from legal_rag_chatbot import prompts
+from legal_rag_chatbot.access import SYSTEM_ACCESS
 from legal_rag_chatbot.evaluation.dataset import (
     NO_ANSWER_CATEGORY,
     load_questions,
@@ -35,9 +36,11 @@ T = TypeVar("T")
 # Answer functions take the question and the earlier chat messages (empty for most questions).
 AnswerFn = Callable[[str, Sequence[Turn]], str]
 ANSWER_FUNCTIONS: dict[str, AnswerFn] = {
-    "rerank": lambda question, history: answer_question(question, history=history),
+    "rerank": lambda question, history: answer_question(
+        question, history=history, access=SYSTEM_ACCESS
+    ),
     "grounded": lambda question, history: answer_question_grounded(
-        standalone_question(question, history)
+        standalone_question(question, history), access=SYSTEM_ACCESS
     ),
 }
 

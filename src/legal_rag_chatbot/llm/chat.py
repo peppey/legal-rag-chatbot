@@ -10,11 +10,13 @@ from google.genai import types
 from pydantic import BaseModel
 
 from legal_rag_chatbot import prompts
+from legal_rag_chatbot.access import SYSTEM_ACCESS, Access
 from legal_rag_chatbot.rag import session
 from legal_rag_chatbot.rag.query import (
     fetch_contexts,
     genai_client,
     map_chunk_to_document,
+    rag_file_ids,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,7 +37,7 @@ UPLOAD_FULL_TEXT_WORDS = 8000
 RANKER_MODEL = "semantic-ranker-512@latest"
 
 CORPUS_NAME = (
-    "projects/187644435346/locations/europe-west3/ragCorpora/1152921504606846976"
+    "projects/187644435346/locations/europe-west3/ragCorpora/7454583283205013504"
 )
 
 
@@ -177,13 +179,18 @@ def resolve_route(
     history: "Sequence[Turn]",
     uploaded_document_ids: Sequence[str],
     search_mode: SearchMode,
+    access: Access,
 ) -> tuple[str, Route]:
     """Standalone question and route for a chat message."""
     if search_mode != "auto":
         return standalone_question(question, history), Route(search_mode)
     route = heuristic_route(question, bool(uploaded_document_ids))
     if route is None:
-        names = [d.name for i in uploaded_document_ids if (d := session.store.get(i))]
+        names = [
+            d.name
+            for i in uploaded_document_ids
+            if (d := session.store.get(i, access.user_id))
+        ]
         return decide_route(question, history, names)
     if route is Route.NONE:
         return question, route
@@ -270,16 +277,19 @@ def prepare_answer(
     uploaded_document_ids: Sequence[str] = (),
     history: Sequence[Turn] = (),
     search_mode: SearchMode = "corpus",
+    *,
+    access: Access,
 ) -> PreparedAnswer:
     """Retrieve and rerank retrieve_k chunks and collect the best context_k as excerpts.
 
-    Excerpts of the given uploaded session documents are added in front of the corpus
+    Only documents of the groups in access are searched. Excerpts of the given uploaded
+    session documents (of the same user) are added in front of the corpus
     excerpts, they are searched separately and never part of the RAG corpus. Follow-up
     questions are rewritten with the chat history first, so that the search finds them.
     The route (see resolve_route) decides which of the two searches run at all.
     """
     question, route = resolve_route(
-        question, history, uploaded_document_ids, search_mode
+        question, history, uploaded_document_ids, search_mode, access
     )
     logger.info("Answering with route %s", route.value)
     if route is Route.NONE:
@@ -301,12 +311,20 @@ def prepare_answer(
                 top_k=retrieve_k,
                 ranker="service",
                 ranker_model=RANKER_MODEL,
+                groups=access.groups,
             )
 
         corpus_search = start_corpus_search() if search_corpus else None
         hits = (
-            session.store.full_text(uploaded_document_ids, UPLOAD_FULL_TEXT_WORDS)
-            or session.store.search(question, uploaded_document_ids, UPLOAD_CONTEXT_K)
+            session.store.full_text(
+                uploaded_document_ids, UPLOAD_FULL_TEXT_WORDS, owner=access.user_id
+            )
+            or session.store.search(
+                question,
+                uploaded_document_ids,
+                UPLOAD_CONTEXT_K,
+                owner=access.user_id,
+            )
             if search_uploads
             else []
         )
@@ -351,10 +369,18 @@ def answer_with_sources(
     uploaded_document_ids: Sequence[str] = (),
     history: Sequence[Turn] = (),
     search_mode: SearchMode = "corpus",
+    *,
+    access: Access,
 ) -> Answer:
     """Retrieve and rerank retrieve_k chunks, then answer from the best context_k."""
     prepared = prepare_answer(
-        question, retrieve_k, context_k, uploaded_document_ids, history, search_mode
+        question,
+        retrieve_k,
+        context_k,
+        uploaded_document_ids,
+        history,
+        search_mode,
+        access=access,
     )
     response = genai_client().models.generate_content(
         model=MODEL, contents=prepared.contents, config=prepared.config
@@ -383,14 +409,22 @@ def answer_question(
     retrieve_k: int = RETRIEVE_K,
     context_k: int = CONTEXT_K,
     history: Sequence[Turn] = (),
+    *,
+    access: Access,
 ) -> str:
     """Like answer_with_sources, but returns only the answer text with [n] markers."""
-    return answer_with_sources(question, retrieve_k, context_k, history=history).text
+    return answer_with_sources(
+        question, retrieve_k, context_k, history=history, access=access
+    ).text
 
 
-def answer_question_grounded(question: str) -> str:
+def answer_question_grounded(question: str, *, access: Access) -> str:
     """Answer a question with Gemini's built-in RAG grounding tool (top_k=5)."""
 
+    file_ids = rag_file_ids(access.groups)
+    if not file_ids:
+        # Without file ids the tool would search the whole corpus.
+        raise PermissionError("No readable documents for this user")
     client = genai_client()
 
     rag_tool = types.Tool(
@@ -399,6 +433,7 @@ def answer_question_grounded(question: str) -> str:
                 rag_resources=[
                     types.VertexRagStoreRagResource(
                         rag_corpus=CORPUS_NAME,
+                        rag_file_ids=file_ids,
                     )
                 ],
                 rag_retrieval_config=types.RagRetrievalConfig(
@@ -422,7 +457,8 @@ def answer_question_grounded(question: str) -> str:
 
 if __name__ == "__main__":
     answer = answer_with_sources(
-        "Welche rechtlichen Probleme bestehen im Fall CASE-024?"
+        "Welche rechtlichen Probleme bestehen im Fall CASE-024?",
+        access=SYSTEM_ACCESS,
     )
 
     print(answer.text)

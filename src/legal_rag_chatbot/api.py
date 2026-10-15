@@ -2,15 +2,16 @@ import json
 import logging
 from collections.abc import Iterator
 from functools import lru_cache
-from pathlib import Path
 from typing import Literal
 from urllib.parse import quote
 
-from fastapi import FastAPI, HTTPException, Request, Response, UploadFile
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from google.genai import errors as genai_errors
 from pydantic import BaseModel, Field
 
+from legal_rag_chatbot.access import PDF_DIR, Access, document_groups
+from legal_rag_chatbot.auth import current_access, warn_if_dev_mode
 from legal_rag_chatbot.evaluation.dataset import load_corpus
 from legal_rag_chatbot.ingestion.extract import ExtractionError
 from legal_rag_chatbot.llm.chat import (
@@ -27,7 +28,6 @@ from legal_rag_chatbot.rag import session
 logger = logging.getLogger(__name__)
 
 EXCERPT_CHARS = 300
-PDF_DIR = Path(__file__).resolve().parents[2] / "data" / "raw" / "pdf"
 BUSY_MESSAGE = (
     "Der Dienst ist gerade ausgelastet. Bitte versuche es in einer Minute erneut."
 )
@@ -40,6 +40,7 @@ def _is_busy(error: Exception) -> bool:
 
 
 app = FastAPI(title="legal-rag-chatbot")
+warn_if_dev_mode()
 
 
 @app.exception_handler(genai_errors.APIError)
@@ -93,13 +94,15 @@ def document_titles() -> dict[str, str]:
 
 
 @app.post("/api/documents/upload")
-def upload_document(file: UploadFile) -> UploadOut:
-    """Store an upload for this session only; it is not added to the RAG corpus."""
+def upload_document(
+    file: UploadFile, access: Access = Depends(current_access)
+) -> UploadOut:
+    """Store an upload for this user's session only; it is not added to the RAG corpus."""
     data = file.file.read(session.MAX_UPLOAD_BYTES + 1)
     if len(data) > session.MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Die Datei ist größer als 20 MB.")
     try:
-        document = session.store.add(file.filename or "", data)
+        document = session.store.add(file.filename or "", data, owner=access.user_id)
     except ExtractionError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     return UploadOut(
@@ -112,13 +115,15 @@ def upload_document(file: UploadFile) -> UploadOut:
 
 
 @app.delete("/api/documents/{document_id}", status_code=204)
-def delete_document(document_id: str) -> None:
-    session.store.remove(document_id)
+def delete_document(document_id: str, access: Access = Depends(current_access)) -> None:
+    session.store.remove(document_id, access.user_id)
 
 
 @app.get("/api/documents/{document_id}/file")
-def document_file(document_id: str) -> Response:
-    if upload := session.store.get(document_id):
+def document_file(
+    document_id: str, access: Access = Depends(current_access)
+) -> Response:
+    if upload := session.store.get(document_id, access.user_id):
         return Response(
             upload.content,
             media_type=upload.media_type,
@@ -127,35 +132,43 @@ def document_file(document_id: str) -> Response:
                 "X-Content-Type-Options": "nosniff",
             },
         )
-    # Only IDs from the corpus are served, which rules out path traversal.
-    if document_id not in document_titles():
+    # Only IDs of documents the user may read are served, which also rules out path
+    # traversal. Foreign documents answer like missing ones.
+    group = document_groups().get(document_id)
+    if group is None or not access.can_read(group):
         raise HTTPException(status_code=404, detail="Dokument nicht gefunden")
-    path = PDF_DIR / f"{document_id}.pdf"
+    path = PDF_DIR / group / f"{document_id}.pdf"
     if not path.is_file():
         raise HTTPException(status_code=404, detail="PDF nicht vorhanden")
     return FileResponse(path, media_type="application/pdf")
 
 
 @app.post("/api/chat", response_model_exclude_none=True)
-def chat(request: ChatRequest) -> ChatResponse:
+def chat(
+    request: ChatRequest, access: Access = Depends(current_access)
+) -> ChatResponse:
     answer = answer_with_sources(
         request.question,
         uploaded_document_ids=request.document_ids,
         search_mode=request.search_mode,
         history=request.turns(),
+        access=access,
     )
     sources = [_source_out(source) for source in answer.cited_sources()]
     return ChatResponse(answer=answer.text, sources=sources)
 
 
 @app.post("/api/chat/stream")
-def chat_stream(request: ChatRequest) -> StreamingResponse:
+def chat_stream(
+    request: ChatRequest, access: Access = Depends(current_access)
+) -> StreamingResponse:
     """Stream the answer as NDJSON events: sources, delta (repeated), then done or error."""
     prepared = prepare_answer(
         request.question,
         uploaded_document_ids=request.document_ids,
         search_mode=request.search_mode,
         history=request.turns(),
+        access=access,
     )
 
     def events() -> Iterator[str]:
