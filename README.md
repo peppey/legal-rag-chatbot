@@ -116,7 +116,7 @@ npm run dev
 
 `npm run build` creates a production build in `frontend/dist/`.
 
-Documents can be added by drag and drop onto the page or with the "Dokumente hinzufügen" button (PDF, DOCX, TXT, up to 20 MB each, several at once). Uploads are chunked with the same logic as the corpus and embedded with `text-embedding-005` into an in-memory store ([session.py](src/legal_rag_chatbot/rag/session.py)). The chat searches the uploads that are listed in the sidebar in addition to the RAG corpus and marks their excerpts as uploaded documents. Uploads are never written to Cloud Storage or imported into the corpus, and they are lost when the backend restarts. Scanned PDFs without a text layer are rejected.
+Documents can be added by drag and drop onto the page or with the "Dokumente hinzufügen" button (PDF, DOCX, TXT, up to 20 MB each, several at once). Uploads are chunked with the same logic as the corpus and embedded with `text-embedding-005` into an in-memory store ([session.py](src/legal_rag_chatbot/rag/session.py)). The chat searches the uploads that are listed in the sidebar in addition to the RAG corpus and marks their excerpts as uploaded documents. Uploads are never written to Cloud Storage or imported into the corpus, and they are lost when the backend restarts. Scanned PDFs without a text layer are sent to Document AI (same OCR processor as the corpus, region `eu`) in slices of 15 pages, up to 60 pages; this takes a few seconds per slice and costs per page. All other uploads stay inside the backend.
 
 ### Access control
 

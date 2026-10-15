@@ -2,6 +2,7 @@
 
 import io
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 import docx
@@ -18,16 +19,21 @@ class ExtractionError(ValueError):
     """The file cannot be read or contains no extractable text."""
 
 
-def extract_text_units(filename: str, data: bytes) -> list[TextUnit]:
+def extract_text_units(
+    filename: str,
+    data: bytes,
+    ocr: Callable[[bytes], list[TextUnit]] | None = None,
+) -> list[TextUnit]:
+    """Text per page; a PDF without any text layer goes through ocr (if given)."""
     suffix = Path(filename).suffix.lower()
     if suffix not in SUPPORTED_SUFFIXES:
         raise ExtractionError("Nur PDF, DOCX und TXT werden unterstützt.")
     reader = {".pdf": _pdf_units, ".docx": _docx_units, ".txt": _txt_units}[suffix]
     units = [(page, paragraphs) for page, paragraphs in reader(data) if paragraphs]
+    if not units and suffix == ".pdf" and ocr:
+        units = [(page, paragraphs) for page, paragraphs in ocr(data) if paragraphs]
     if not units:
-        raise ExtractionError(
-            "Im Dokument wurde kein Text gefunden (gescannte PDFs werden nicht erkannt)."
-        )
+        raise ExtractionError("Im Dokument wurde kein Text gefunden.")
     return units
 
 

@@ -2,12 +2,12 @@ import argparse
 
 from legal_rag_chatbot.access import OCR_DIR as OUTPUT_DIR
 from legal_rag_chatbot.access import PDF_DIR
-from legal_rag_chatbot.ingestion.ocr import run_ocr
+from legal_rag_chatbot.ingestion.ocr import (
+    OCR_LOCATION,
+    OCR_PROCESSOR_NAME,
+    run_ocr,
+)
 from legal_rag_chatbot.rag.query import PROJECT_ID
-
-# Document AI is not available in europe-west3; "eu" keeps the data in the EU.
-LOCATION = "eu"
-PROCESSOR_DISPLAY_NAME = "legal-rag-ocr"
 
 
 def main() -> None:
@@ -22,8 +22,8 @@ def main() -> None:
         PDF_DIR,
         OUTPUT_DIR,
         PROJECT_ID,
-        LOCATION,
-        PROCESSOR_DISPLAY_NAME,
+        OCR_LOCATION,
+        OCR_PROCESSOR_NAME,
         workers=args.workers,
         force=args.force,
         limit=args.limit,

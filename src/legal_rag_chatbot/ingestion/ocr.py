@@ -1,17 +1,32 @@
 """OCR the exported PDFs with Google Cloud Document AI and store the text as JSON."""
 
+import io
 import json
+import logging
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from google.api_core import exceptions, retry
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai
+from pypdf import PdfReader, PdfWriter
 
 from legal_rag_chatbot.access import GROUPS
+from legal_rag_chatbot.ingestion.chunking import split_at_offsets
+from legal_rag_chatbot.ingestion.extract import ExtractionError, TextUnit
+from legal_rag_chatbot.rag.query import PROJECT_ID
+
+logger = logging.getLogger(__name__)
 
 PROCESSOR_TYPE = "OCR_PROCESSOR"
+# Document AI is not available in europe-west3; "eu" keeps the data in the EU.
+OCR_LOCATION = "eu"
+OCR_PROCESSOR_NAME = "legal-rag-ocr"
 LANGUAGE_HINTS = ["de"]
+# Online processing accepts 15 pages per request; longer uploads are sent in slices.
+PAGES_PER_REQUEST = 15
+MAX_UPLOAD_PAGES = 60
 RETRY = retry.Retry(
     predicate=retry.if_exception_type(
         exceptions.ResourceExhausted,
@@ -58,13 +73,13 @@ def get_or_create_processor(
 def ocr_pdf(
     client: documentai.DocumentProcessorServiceClient,
     processor_name: str,
-    pdf_path: Path,
+    content: bytes,
 ) -> documentai.Document:
     """Run online OCR on one PDF (the API accepts up to 15 pages per request)."""
     request = documentai.ProcessRequest(
         name=processor_name,
         raw_document=documentai.RawDocument(
-            content=pdf_path.read_bytes(), mime_type="application/pdf"
+            content=content, mime_type="application/pdf"
         ),
         process_options=documentai.ProcessOptions(
             ocr_config=documentai.OcrConfig(
@@ -139,6 +154,82 @@ def to_record(
     }
 
 
+def document_units(
+    document: documentai.Document, first_page: int = 1
+) -> list[TextUnit]:
+    """Paragraphs per page of an OCR result, in the form the upload store expects."""
+    units: list[TextUnit] = []
+    for page in document.pages:
+        number = first_page + page.page_number - 1
+        segments = page.layout.text_anchor.text_segments
+        if not segments:
+            units.append((number, []))
+            continue
+        start = min(int(s.start_index) for s in segments)
+        end = max(int(s.end_index) for s in segments)
+        starts = [
+            int(p.layout.text_anchor.text_segments[0].start_index) - start
+            for p in page.paragraphs
+            if p.layout.text_anchor.text_segments
+        ]
+        pieces = split_at_offsets(document.text[start:end], starts)
+        units.append((number, [p.strip() for p in pieces if p.strip()]))
+    return units
+
+
+_upload_ocr: tuple[documentai.DocumentProcessorServiceClient, str] | None = None
+_upload_ocr_lock = threading.Lock()
+
+
+def _upload_processor() -> tuple[documentai.DocumentProcessorServiceClient, str]:
+    global _upload_ocr
+    with _upload_ocr_lock:
+        if _upload_ocr is None:
+            client = create_client(OCR_LOCATION)
+            _upload_ocr = (
+                client,
+                get_or_create_processor(
+                    client, PROJECT_ID, OCR_LOCATION, OCR_PROCESSOR_NAME
+                ),
+            )
+        return _upload_ocr
+
+
+def _slices(data: bytes, reader: PdfReader) -> list[bytes]:
+    if len(reader.pages) <= PAGES_PER_REQUEST:
+        return [data]
+    slices = []
+    for first in range(0, len(reader.pages), PAGES_PER_REQUEST):
+        writer = PdfWriter()
+        for page in reader.pages[first : first + PAGES_PER_REQUEST]:
+            writer.add_page(page)
+        buffer = io.BytesIO()
+        writer.write(buffer)
+        slices.append(buffer.getvalue())
+    return slices
+
+
+def ocr_units(data: bytes) -> list[TextUnit]:
+    """OCR an uploaded PDF without a text layer. Raises ExtractionError if that fails."""
+    reader = PdfReader(io.BytesIO(data))
+    if len(reader.pages) > MAX_UPLOAD_PAGES:
+        raise ExtractionError(
+            f"Gescannte PDFs mit mehr als {MAX_UPLOAD_PAGES} Seiten werden nicht unterstützt."
+        )
+    units: list[TextUnit] = []
+    try:
+        client, processor_name = _upload_processor()
+        for index, part in enumerate(_slices(data, reader)):
+            document = ocr_pdf(client, processor_name, part)
+            units += document_units(document, first_page=index * PAGES_PER_REQUEST + 1)
+    except exceptions.GoogleAPICallError as error:
+        logger.exception("OCR of an upload failed")
+        raise ExtractionError(
+            "Die Texterkennung für das gescannte PDF ist fehlgeschlagen."
+        ) from error
+    return units
+
+
 def run_ocr(
     pdf_dir: Path,
     output_dir: Path,
@@ -167,7 +258,7 @@ def run_ocr(
         record = to_record(
             pdf.name,
             processor_name,
-            ocr_pdf(client, processor_name, pdf),
+            ocr_pdf(client, processor_name, pdf.read_bytes()),
             pdf.parent.name,
         )
         (output_dir / f"{pdf.stem}.json").write_text(

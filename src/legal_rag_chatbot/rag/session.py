@@ -15,7 +15,12 @@ import numpy as np
 from google.genai import types
 
 from legal_rag_chatbot.ingestion.chunking import chunk_paragraphs
-from legal_rag_chatbot.ingestion.extract import ExtractionError, extract_text_units
+from legal_rag_chatbot.ingestion.extract import (
+    ExtractionError,
+    TextUnit,
+    extract_text_units,
+)
+from legal_rag_chatbot.ingestion.ocr import ocr_units
 from legal_rag_chatbot.rag.query import genai_client
 
 EMBEDDING_MODEL = "text-embedding-005"
@@ -76,8 +81,13 @@ class SessionHit:
 
 
 class SessionStore:
-    def __init__(self, embedder: Embedder = embed_texts) -> None:
+    def __init__(
+        self,
+        embedder: Embedder = embed_texts,
+        ocr: Callable[[bytes], list[TextUnit]] = ocr_units,
+    ) -> None:
         self._embedder = embedder
+        self._ocr = ocr
         self._documents: dict[str, SessionDocument] = {}
         self._lock = threading.Lock()
 
@@ -86,7 +96,7 @@ class SessionStore:
         name = Path(name).name or "Dokument"
         chunks = [
             SessionChunk(text=chunk["content"], page=page)
-            for page, paragraphs in extract_text_units(name, data)
+            for page, paragraphs in extract_text_units(name, data, self._ocr)
             for chunk in chunk_paragraphs(paragraphs)
         ]
         if not chunks:
