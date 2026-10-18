@@ -9,6 +9,8 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 env:
   GAR_LOCATION: europe-west3
   GCP_PROJECT_ID: legal-rag-chatbot
