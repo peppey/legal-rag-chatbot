@@ -499,7 +499,7 @@ requests = [
 
 [[package]]
 name = "google-cloud-aiplatform"
-version = "2.2.0"
+version = "2.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -516,9 +516,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/63/da/492c73aa5d2584c132aea33dacfd132866952e47c3dbb9e4297f3774d5c6/google_cloud_aiplatform-2.2.0.tar.gz", hash = "sha256:adafcc07cd36289664ae36891137ad28f81a6372a3d698648646f2a9ca6e1c7d", size = 11339673, upload-time = "2026-09-23T17:29:23.283Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/74/37/df458b19ba3a03a7ba56490e0f7e765c4f06f53c40c2b1456ae5fbf8468a/google_cloud_aiplatform-2.5.0.tar.gz", hash = "sha256:84eec237446e947783d28d6dca93133a9e033e96c5162e22c9ad5641dcddd374", size = 11364831, upload-time = "2026-10-14T00:50:19.934Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/9c/ebfa67010c20efa0b8a16bd689fe9bc336d7d228012abb5440d63b35a29f/google_cloud_aiplatform-2.2.0-py2.py3-none-any.whl", hash = "sha256:8de28d03dcb0887fce4a77557085f4d308758526b76cfd53820420ae82a68c80", size = 9459182, upload-time = "2026-09-23T17:29:19.859Z" },
+    { url = "https://files.pythonhosted.org/packages/ff/95/4a6715a1383e56850c9bff0667de38f96e04c870b6a69f6d1ed8e93ebd24/google_cloud_aiplatform-2.5.0-py2.py3-none-any.whl", hash = "sha256:9415de66b1fac691912a0c437f239f707e097409538e7f153a77c2edd690deba", size = 9475377, upload-time = "2026-10-14T00:50:16.549Z" },
 ]
 
 [[package]]
