@@ -2,3 +2,5 @@ __pycache__/
 data/raw/pdf/*
 data/raw/pdf_with_noise/*
 frontend/node_modules/
+.env
+.env.local
