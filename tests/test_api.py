@@ -1,9 +1,11 @@
 import json
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
 
 from legal_rag_chatbot import api
+from legal_rag_chatbot.llm import chat
 from legal_rag_chatbot.llm.chat import Answer, PreparedAnswer, Source, Turn
 from legal_rag_chatbot.rag.session import SessionStore
 
@@ -233,3 +235,61 @@ def test_chat_thinking_defaults_to_off_and_is_passed_on(
     client.post("/api/chat", json={"question": "x", "thinking": True})
 
     assert received == [False, True]
+
+
+class FakeStreamingClient:
+    def __init__(self, deltas: list[str]) -> None:
+        self.contents: list[str] = []
+        self.models = SimpleNamespace(generate_content_stream=self._stream)
+        self._deltas = deltas
+
+    def _stream(self, *, model, contents, config):
+        self.contents.append(contents)
+        return iter([SimpleNamespace(text=delta) for delta in self._deltas])
+
+
+@pytest.mark.parametrize(
+    ("role", "groups"),
+    [
+        ("a", {"A", "Geteilt"}),
+        ("b", {"B", "Geteilt"}),
+        ("admin", {"A", "B", "Geteilt"}),
+    ],
+)
+def test_chat_stream_end_to_end_searches_only_the_groups_of_the_role(
+    monkeypatch: pytest.MonkeyPatch, role: str, groups: set[str]
+) -> None:
+    searched = []
+
+    def fake_fetch_contexts(question, **kwargs):
+        searched.append((question, kwargs["groups"]))
+        return [
+            SimpleNamespace(
+                text="document_id CASE-023-07\ncontent Die Klagefrist endet am 29.01.2026.",
+                source_uri="gs://bucket/a",
+            )
+        ]
+
+    model = FakeStreamingClient(["Die Frist endet ", "am 29.01.2026 [1]."])
+    monkeypatch.setattr(chat, "fetch_contexts", fake_fetch_contexts)
+    monkeypatch.setattr(chat, "genai_client", lambda: model)
+    monkeypatch.setattr(api, "document_titles", lambda: {"CASE-023-07": "Klageschrift"})
+
+    response = TestClient(api.app).post(
+        "/api/chat/stream",
+        json={"question": "Wann endet die Klagefrist im Fall CASE-023?"},
+        headers={"X-Dev-Role": role},
+    )
+
+    assert response.status_code == 200
+    events = [json.loads(line) for line in response.text.splitlines()]
+    assert [e["type"] for e in events] == ["sources", "delta", "delta", "done"]
+    assert events[0]["sources"][0]["documentId"] == "CASE-023-07"
+    assert "".join(e["text"] for e in events if e["type"] == "delta") == (
+        "Die Frist endet am 29.01.2026 [1]."
+    )
+    assert events[-1]["cited"] == [1]
+    assert [(q, set(g)) for q, g in searched] == [
+        ("Wann endet die Klagefrist im Fall CASE-023?", groups)
+    ]
+    assert "[1] document_id CASE-023-07" in model.contents[0]
