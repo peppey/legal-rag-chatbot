@@ -171,6 +171,14 @@ uv run python -m legal_rag_chatbot.scripts.evaluate_answers --mode grounded --li
 
 Both scripts accept `--limit N` for a quick run, `--workers` and `--output` for the report path (default: `data/evaluation/results/`). The relevance labels belong to specific document contents. If you change the documents substantially, review the labels and re-import the corpus before comparing results with older reports.
 
+### Prompt injection
+
+[injection_eval.json](data/evaluation/injection_eval.json) holds cases with poisoned excerpts, a forged chat history and system prompt extraction attempts. The search is replaced by fixed excerpts and the answers are checked with regular expressions (no judge). The run exits with a non-zero code if a case fails. The full answers are in the report, because a warning that quotes the injection can trigger a pattern.
+
+```bash
+uv run python -m legal_rag_chatbot.evaluation.injection_eval
+```
+
 ### Search routing
 
 Not every message needs a search of the RAG corpus. The chat endpoints take an optional `search_mode` (default `auto`):

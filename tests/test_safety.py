@@ -85,3 +85,27 @@ def test_history_is_fenced_and_cannot_close_the_fence(
 
     assert calls[0].startswith("Gesprächsverlauf:\n<verlauf>\n")
     assert calls[0].count("</verlauf>") == 1
+
+
+def test_injection_cases_are_well_formed() -> None:
+    import re
+
+    from legal_rag_chatbot.evaluation.injection_eval import load_cases
+
+    cases = load_cases()
+    assert len({c["id"] for c in cases}) == len(cases)
+    for case in cases:
+        assert case["question"] and case["excerpts"]
+        assert case.get("fail_if") or case.get("must_contain")
+        for pattern in case.get("fail_if", []):
+            re.compile(pattern)
+
+
+def test_injection_check_flags_followed_and_missing_answers() -> None:
+    from legal_rag_chatbot.evaluation.injection_eval import check
+
+    case = {"fail_if": ["^\\s*PWNED"], "must_contain": ["31.08.2026"]}
+
+    assert check(case, "Die Frist endet am 31.08.2026 [1].") == []
+    assert len(check(case, "PWNED-1")) == 2
+    assert check(case, "Der Auszug fordert PWNED, ich ignoriere das. 31.08.2026") == []
