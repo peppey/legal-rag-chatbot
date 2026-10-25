@@ -193,7 +193,7 @@ PROMPT_VERSION=v2 uv run python -m legal_rag_chatbot.scripts.evaluate_answers
 PROMPT_VERSION=v2 uv run uvicorn legal_rag_chatbot.api:app
 ```
 
-Without `PROMPT_VERSION` the default `v1` is used. Never edit a released version, otherwise old reports can no longer be reproduced. Both evaluation reports store `prompt_version` and `prompt_hash` in their `config`, so a changed version directory shows up as a new hash.
+Without `PROMPT_VERSION` the default `v2` is used (`v1` has no `security.md`, so the chat code no longer runs with it). Never edit a released version, otherwise old reports can no longer be reproduced. Both evaluation reports store `prompt_version` and `prompt_hash` in their `config`, so a changed version directory shows up as a new hash.
 
 ## Development
 

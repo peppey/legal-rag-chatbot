@@ -11,6 +11,13 @@ from pydantic import BaseModel
 
 from legal_rag_chatbot import prompts
 from legal_rag_chatbot.access import SYSTEM_ACCESS, Access
+from legal_rag_chatbot.llm.safety import (
+    DOCUMENTS_TAG,
+    HISTORY_TAG,
+    log_if_suspicious,
+    neutralize,
+    wrap,
+)
 from legal_rag_chatbot.rag import session
 from legal_rag_chatbot.rag.query import (
     fetch_contexts,
@@ -44,12 +51,15 @@ CORPUS_NAME = (
 
 
 # The prompt texts live in prompts/<version>/*.md, the version is set with PROMPT_VERSION.
-SYSTEM_PROMPT = f"\n{prompts.get('system')}\n\n{prompts.get('format')}\n"
+SECURITY_INSTRUCTION = prompts.get("security")
+SYSTEM_PROMPT = (
+    f"\n{prompts.get('system')}\n\n{prompts.get('format')}\n\n{SECURITY_INSTRUCTION}\n"
+)
 CITATION_INSTRUCTION = f"\n{prompts.get('citation')}\n"
 UPLOAD_INSTRUCTION = f"\n{prompts.get('upload')}\n"
 REWRITE_PROMPT = f"\n{prompts.get('rewrite')}\n"
 ROUTE_PROMPT = f"\n{prompts.get('route')}\n"
-SMALLTALK_SYSTEM_PROMPT = f"\n{prompts.get('smalltalk')}\n"
+SMALLTALK_SYSTEM_PROMPT = f"\n{prompts.get('smalltalk')}\n\n{SECURITY_INSTRUCTION}\n"
 
 _CORPUS_WORDING = "die aus dem\nRAG-Corpus abgerufen werden"
 assert _CORPUS_WORDING in SYSTEM_PROMPT, (
@@ -250,10 +260,13 @@ class PreparedAnswer:
 
 
 def _transcript(turns: Sequence[Turn]) -> str:
-    return "\n".join(
-        f"{'Nutzer' if turn.role == 'user' else 'Assistent'}: "
-        f"{CITATION_MARKER.sub('', turn.content)[:HISTORY_TURN_CHARS]}"
-        for turn in turns
+    return wrap(
+        HISTORY_TAG,
+        "\n".join(
+            f"{'Nutzer' if turn.role == 'user' else 'Assistent'}: "
+            f"{neutralize(CITATION_MARKER.sub('', turn.content)[:HISTORY_TURN_CHARS])}"
+            for turn in turns
+        ),
     )
 
 
@@ -358,11 +371,15 @@ def prepare_answer(
         )
         for number, c in enumerate(contexts, start=len(hits) + 1)
     ]
-    excerpts = "\n\n".join(f"[{s.number}] {_excerpt_label(s)}{s.text}" for s in sources)
+    excerpts = "\n\n".join(
+        neutralize(f"[{s.number}] {_excerpt_label(s)}{s.text}") for s in sources
+    )
+    for s in sources:
+        log_if_suspicious(s.text, f"excerpt {s.document_id or s.document_name}")
     return PreparedAnswer(
         sources=sources,
         system_prompt=RERANK_SYSTEM_PROMPT + (UPLOAD_INSTRUCTION if hits else ""),
-        contents=f"Dokumentauszüge:\n\n{excerpts}\n\nFrage: {question}",
+        contents=f"{wrap(DOCUMENTS_TAG, excerpts)}\n\nFrage: {question}",
         route=route,
         thinking=thinking,
     )

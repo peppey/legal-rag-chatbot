@@ -6,6 +6,7 @@ PROMPT_NAMES = [
     "system",
     "format",
     "citation",
+    "security",
     "upload",
     "rewrite",
     "route",

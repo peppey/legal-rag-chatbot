@@ -77,6 +77,8 @@ function MessageText({
   openRef.current = onOpenSource;
   const components = useMemo<Components>(
     () => ({
+      // Images would load external URLs, which could leak data after a prompt injection.
+      img: () => null,
       a: ({ href, children }) => {
         const number = href?.match(/^#cite-(\d+)$/)?.[1];
         if (!number) {
